@@ -67,7 +67,7 @@ entity-resolution/
 ### Анонимизация
 
 - Все персональные данные заменены детерминированно.
-- Одно и то же исходное значение → одно и то же синтетическое.
+- Одно и то же исходное значение -> одно и то же синтетическое.
 - Домен email и префикс телефона сохранены.
 - Род имени и фамилии сохранён.
 
@@ -78,7 +78,8 @@ entity-resolution/
 ## Архитектура решения
 
 ```text
-Сырые события -> Preprocessing -> Агрегация -> Blocking -> Feature Engineering -> Модель -> Кластеризация
+Сырые события -> Preprocessing -> Агрегация -> Blocking -> 
+-> Feature Engineering -> Модель -> Кластеризация
 ```
 
 ## Структура проекта
@@ -115,6 +116,8 @@ cd test-repo
 
 # 3. Устанавливаем зависимости
 ```bash
+python -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
 ```
 
@@ -144,7 +147,7 @@ python test_mini_pipeline.py
 ## Документация
 
 - [Предлагаемая стратегия решения](docs/strategy.md)
-- [Описание модулей](docs/modules.md)
+- [Описание модулей](docs/modules_description.md)
 
 
 ## Лицензия
