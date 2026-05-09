@@ -69,29 +69,42 @@ print(f"   Все совпадают: {ids_df == ids_site == ids_cat}")
 print(f"\n6. СОХРАНЕНИЕ РЕЗУЛЬТАТОВ:")
 print(f"   Папка: {OUTPUT_DIR}")
 
-# 6.1 Паспорт профиля -> CSV (удобно смотреть в Excel / VS Code)
+# Создаём копию для сохранения (чтобы не менять исходный profiles_df)
+profiles_save = profiles_df.copy()
+
+# Преобразуем frozenset -> строка для сохранения в CSV/Parquet
+set_cols = ["email_normalized", "email_domain", "phone_normalized",
+            "phone_prefix", "device", "osfamily", "browser"]
+
+for col in set_cols:
+    profiles_save[col] = profiles_save[col].apply(
+        lambda x: ", ".join(sorted(x)) if isinstance(x, frozenset) and x else ""
+    )
+
+# Паспорт профиля -> CSV
 profiles_path = OUTPUT_DIR / "profiles_df.csv"
-profiles_df.to_csv(profiles_path)
+profiles_save.to_csv(profiles_path)
 print(f"   profiles_df.csv ({len(profiles_df):,} строк)")
 
-# 6.2 Паспорт профиля → Parquet (быстрее читать в Pandas)
+# Паспорт профиля -> Parquet
 profiles_parquet_path = OUTPUT_DIR / "profiles_df.parquet"
-profiles_df.to_parquet(profiles_parquet_path)
+profiles_save.to_parquet(profiles_parquet_path)
 print(f"   profiles_df.parquet")
 
-# 6.3 site_index -> Pickle (словарь с множествами)
+# site_index -> Pickle (словарь с множествами — сохраняется как есть)
+import pickle
 site_path = OUTPUT_DIR / "site_index.pkl"
 with open(site_path, "wb") as f:
     pickle.dump(site_index, f)
 print(f"   site_index.pkl ({len(site_index):,} записей)")
 
-# 6.4 cat_index -> Pickle
+# cat_index -> Pickle
 cat_path = OUTPUT_DIR / "cat_index.pkl"
 with open(cat_path, "wb") as f:
     pickle.dump(cat_index, f)
-print(f"  cat_index.pkl ({len(cat_index):,} записей)")
+print(f"   cat_index.pkl ({len(cat_index):,} записей)")
 
-# 6.5 Сводка -> текстовый файл
+# Сводка -> TXT
 summary_path = OUTPUT_DIR / "summary.txt"
 with open(summary_path, "w", encoding="utf-8") as f:
     f.write(f"Датасет: {DATA_PATH.name}\n")
@@ -102,8 +115,3 @@ with open(summary_path, "w", encoding="utf-8") as f:
     f.write(f"Время обработки: {elapsed:.0f} сек\n")
     f.write(f"Дата: {pd.Timestamp.now()}\n")
 print(f"   summary.txt")
-
-print("\n" + "=" * 60)
-print(" МИНИ-ПАЙПЛАЙН ГОТОВ К РАБОТЕ")
-print(f"   Результаты сохранены в: {OUTPUT_DIR}")
-print("=" * 60)

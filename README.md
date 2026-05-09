@@ -10,9 +10,9 @@ entity-resolution/
 ├── test_mini_pipeline.py
 │
 ├── data/
-│   ├── raw/ # Сюда кладем данные для обработки
+│   ├── raw/ # !Сюда кладем данные для обработки!
 │   │   └── .gitkeep
-│   └── processed/
+│   └── processed/ # Тут можно посмотреть результаты всего пайплайна после запуска
 │       └── .gitkeep
 │
 ├── src/
@@ -23,8 +23,8 @@ entity-resolution/
 │   ├── cat_activity_processor.py
 │   └── profiles_processor.py
 │
-├── notebooks/
-├── docs/
+├── notebooks/ # Здесь лежит ноутбук с EDA и дополнительными тестами
+├── docs/ # Описание стратегии и логики работы модулей
 ├── app/ # На будущее для Streamlit
 └── logs/ # На будущее для сохранение логов в файл
 ```
@@ -98,8 +98,9 @@ src/
 # 1. Клонируем репозиторий
 
 ```bash
-git clone https://github.com/steishas/test-repo
-cd test-repo
+git clone https://github.com/Pizhurin/workshop_mipt_spring_2026
+cd workshop_mipt_spring_2026
+git checkout data-pipeline-version-1
 ```
 
 # 2. Загружаем сырые данные по нужному пути
@@ -128,11 +129,33 @@ python test_mini_pipeline.py
 ```
 
 # 5. Результат
-На выходе три структуры:
 
-- profiles_df (DataFrame) - Паспорт профиля: демография, контакты, флаги
-- site_index (dict) - Цифровой след: посещённые сайты по категориям
-- cat_index	(dict) - Почтовая активность: реакции на рассылки
+На выходе формируются три структуры, которые **сохраняются в `data/processed/`**:
+
+| Файл | Тип | Описание |
+|---|---|---|
+| `profiles_df.csv` | CSV | Паспорт профиля: демография, контакты, флаги (можно открыть в Excel) |
+| `profiles_df.parquet` | Parquet | Та же таблица в бинарном формате (быстрая загрузка в Pandas) |
+| `site_index.pkl` | Pickle (dict) | Цифровой след: посещённые сайты по 12 категориям |
+| `cat_index.pkl` | Pickle (dict) | Почтовая активность: реакции на рассылки |
+| `summary.txt` | TXT | Краткая сводка: количество профилей, время обработки, дата |
+
+## Как загрузить сохранённые результаты
+
+```python
+import pandas as pd
+import pickle
+
+# Паспорт профиля
+profiles_df = pd.read_parquet("data/processed/profiles_df.parquet")
+
+# Индексы
+with open("data/processed/site_index.pkl", "rb") as f:
+    site_index = pickle.load(f)
+
+with open("data/processed/cat_index.pkl", "rb") as f:
+    cat_index = pickle.load(f)
+```
 
 ## Текущий статус
 
