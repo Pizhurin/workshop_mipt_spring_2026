@@ -1,5 +1,7 @@
 # cat_activity_processor.py
-
+"""
+Собирает индекс по почтовой активности пользователя
+"""
 import pandas as pd
 
 import logging

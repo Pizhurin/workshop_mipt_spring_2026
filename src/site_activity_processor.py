@@ -1,5 +1,7 @@
 # site_activity_processor.py
-
+"""
+Собирает индекс по цифровому следу пользователя
+"""
 import pandas as pd
 
 import logging

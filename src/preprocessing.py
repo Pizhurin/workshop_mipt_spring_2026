@@ -1,4 +1,7 @@
 # preprocessing.py
+"""
+Предобработка и нормализация
+"""
 
 import re
 import pandas as pd
@@ -56,11 +59,18 @@ def unify_entity_ids(df):
     из последнего по времени события.
     """
     df_sorted = df.sort_values('created_at')
-    # Берём последнее событие для каждого profile_id
     last_event = df_sorted.groupby('profile_id').tail(1)
 
-    entity_mapping = last_event[['profile_id', 'entity_id', 'entity_type']]
-    df = df.drop(columns=['entity_id', 'entity_type']).merge(
+    # Собираем только те колонки, которые есть в данных
+    cols_available = ['profile_id', 'entity_id']
+    if 'entity_type' in df.columns:
+        cols_available.append('entity_type')
+
+    entity_mapping = last_event[cols_available]
+
+    # Удаляем старые колонки, которые будем заменять, если они есть
+    cols_to_drop = [c for c in ['entity_id', 'entity_type'] if c in df.columns]
+    df = df.drop(columns=cols_to_drop).merge(
         entity_mapping,
         on='profile_id',
         how='left'
@@ -115,7 +125,7 @@ def extract_phone_prefix(phone_str):
         return None
     digits = normalize_phone(phone_str)
     if digits and len(digits) >= 4:
-        return digits[:4]  # например "7916"
+        return digits[:4]
     return None
 
 # ─── Names ──────────────────────────────────────────────
@@ -129,10 +139,30 @@ def normalize_name(name_str):
     s = " ".join(s.split())
     s = re.sub(r"[^a-zа-яё\-']", "", s)
 
-    # Если после очистки пустая строка — None
+    # Если после очистки пустая строка - None
     if not s:
         return None
     return s
+
+# ─── Birthday ─────────────────────────────────────────────
+
+def normalize_birthday(birthday_val):
+    """
+    Приводит дату рождения к строке YYYY-MM-DD или None.
+    """
+    if pd.isna(birthday_val) or birthday_val is None:
+        return None
+    try:
+        # Если это datetime или Timestamp
+        if hasattr(birthday_val, "strftime"):
+            return birthday_val.strftime("%Y-%m-%d")
+        # Если это строка
+        s = str(birthday_val).strip()
+        if s in ("", "NaT", "None", "nan", "NaN"):
+            return None
+        return pd.Timestamp(s).strftime("%Y-%m-%d")
+    except (ValueError, TypeError):
+        return None
 
 # ─── Извлекаем данные из json and array-like полей ─────────────────────────────────
 def extract_array_features(df, col_name):
@@ -162,6 +192,7 @@ def normalize_contacts(df):
     df["phone_prefix"] = df["phone"].apply(extract_phone_prefix)
     df["first_name_clean"] = df["first_name"].apply(normalize_name)
     df["last_name_clean"] = df["last_name"].apply(normalize_name)
+    df["birthday_clean"] = df["birthday"].apply(normalize_birthday)
     return df
 
 # ─── Весь пайплайн ─────────────────────────────────────────────────────────────────
@@ -208,6 +239,15 @@ def full_preprocessing(df):
             f"Будет выполнена унификация."
         )
     df = unify_entity_ids(df)
+    # Вычисляем entity_type, если колонка отсутствует
+    if 'entity_type' not in df.columns:
+        # Определяем количество профилей в каждой entity
+        entity_counts = df.groupby('entity_id')['profile_id'].transform('nunique')
+        df['entity_type'] = entity_counts.apply(
+            lambda x: 'multi_profile' if x > 1 else 'single_profile'
+        )
+        logger.info("Колонка 'entity_type' вычислена автоматически.")
+
     after_fix = df.groupby('profile_id')['entity_id'].nunique().max()
     logger.info(f"  После унификации: max entity_id на profile_id = {after_fix}")
 
@@ -215,8 +255,7 @@ def full_preprocessing(df):
     logger.info("Шаг 6/6: нормализация контактов...")
     df = normalize_contacts(df)
     logger.info(f"  Добавлены колонки: email_normalized, email_domain, "
-                f"phone_normalized, phone_prefix, first_name_clean, last_name_clean")
-
+                f"phone_normalized, phone_prefix, first_name_clean, last_name_clean, birthday_clean")
     logger.info("-" * 50)
     logger.info(f"Предобработка завершена. Строк: {len(df)}, колонок: {df.shape[1]}")
     logger.info("=" * 50)

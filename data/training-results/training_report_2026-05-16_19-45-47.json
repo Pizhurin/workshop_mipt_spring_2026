@@ -1,0 +1,93 @@
+{
+  "experiment_id": "2026-05-16_19-45-47",
+  "model_filename": "catboost_model_2026-05-16_19-45-47.cbm",
+  "recovery_rate": 0.42724458204334365,
+  "perfect_recovered": 690,
+  "n_true_multi": 1615,
+  "partial_clusters": 634,
+  "total_clusters": 1324,
+  "true_multi_sizes": {
+    "1": 9059,
+    "2": 1560,
+    "3": 49,
+    "4": 4,
+    "5": 1,
+    "116": 1
+  },
+  "predicted_cluster_sizes": {
+    "2": 1159,
+    "3": 124,
+    "4": 31,
+    "5": 3,
+    "6": 2,
+    "7": 2,
+    "8": 1,
+    "11": 1,
+    "116": 1
+  },
+  "threshold_used": 0.99,
+  "num_pairs_generated": 4224370,
+  "num_profiles_test": 12463,
+  "pair_classification_report": {
+    "0": {
+      "precision": 0.9998670956628806,
+      "recall": 0.9992327272313288,
+      "f1-score": 0.999549810795976,
+      "support": 4216232.0
+    },
+    "1": {
+      "precision": 0.7008230833256266,
+      "recall": 0.931187023838781,
+      "f1-score": 0.7997467152129175,
+      "support": 8138.0
+    },
+    "accuracy": 0.9991016411914676,
+    "macro avg": {
+      "precision": 0.8503450894942536,
+      "recall": 0.9652098755350549,
+      "f1-score": 0.8996482630044468,
+      "support": 4224370.0
+    },
+    "weighted avg": {
+      "precision": 0.9992910049860694,
+      "recall": 0.9991016411914676,
+      "f1-score": 0.9991649019002461,
+      "support": 4224370.0
+    }
+  },
+  "config": {
+    "seed": 42,
+    "blocking": {
+      "max_group_size": 800,
+      "use_geo_device": true,
+      "use_sites": true
+    },
+    "model": {
+      "depth": 9,
+      "early_stopping_rounds": 150,
+      "eval_metric": "F1",
+      "iterations": 2000,
+      "l2_leaf_reg": 4,
+      "learning_rate": 0.08,
+      "scale_pos_weight": 10
+    },
+    "training": {
+      "balance_ratio": 8
+    },
+    "clustering": {
+      "method": "hierarchical_average",
+      "threshold": 0.99
+    },
+    "confidence": {
+      "check_conflicts": true,
+      "min_avg_prob": 0.95,
+      "min_prob": 0.85
+    },
+    "paths": {
+      "evaluation_results": "data/evaluation-results",
+      "inference_results": "data/inference-results",
+      "model_dir": "models",
+      "training_results": "data/training-results"
+    }
+  }
+}

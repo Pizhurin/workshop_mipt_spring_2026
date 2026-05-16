@@ -1,15 +1,16 @@
 # requirements.txt
 
-# Ядро
+# Основные зависимости для работы пайплайна
 pandas>=2.0.0
 numpy>=1.24.0
+scikit-learn>=1.3.0
+catboost>=1.2.0
+networkx>=3.0
+scipy>=1.10.0
+PyYAML>=6.0
+python-Levenshtein>=0.21.0
+pyarrow>=14.0.0
 
-# Preprocessing
-# (использует встроенные json, re, logging — не требуют установки)
-
-# Визуализация (для EDA)
+# Опционально: для EDA и визуализации (не обязательны для запуска)
 matplotlib>=3.7.0
 seaborn>=0.12.0
-
-# Данные (чтение parquet)
-pyarrow>=14.0.0

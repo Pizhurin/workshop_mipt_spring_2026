@@ -1,54 +1,52 @@
 # Python
 __pycache__/
 *.py[cod]
-*$py.class
 *.so
-*.pyo
-*.pyd
 .Python
-venv/
 env/
-.venv/
+venv/
+venv_*/
+.venv
 *.egg-info/
 dist/
 build/
 
-# Jupyter
+# Jupyter (ноутбуки не храним)
 .ipynb_checkpoints/
-*.ipynb_checkpoints*
+*.ipynb
+notebooks/
 
-# Данные
+# Сырые данные и кэш (исключаем содержимое, но не папки)
 data/raw/*
 !data/raw/.gitkeep
+!data/raw/training/.gitkeep
+!data/raw/inference/.gitkeep
+!data/raw/evaluation/.gitkeep
 
-# Результаты пайплайна
 data/processed/*
 !data/processed/.gitkeep
 
-# Логи
-logs/*
-!logs/.gitkeep
+# Результаты инференса и оценки (только структура)
+data/inference-results/*
+!data/inference-results/.gitkeep
+
+data/evaluation-results/*
+!data/evaluation-results/.gitkeep
+
+*.log
+
+# CatBoost временные файлы
+catboost_info/
+
+# Локальные конфиги
+config_local.yaml
 
 # IDE
 .vscode/
 .idea/
 *.swp
-*.swo
-
-# OS
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-Thumbs.db
-.AppleDouble
-.LSOverride
-Icon
 
-# Conda / pytest
-.pytest_cache/
-
-# App (Streamlit) на будущее
-app/__pycache__/
+# Модели и отчёты – хранятся (исключения закомментированы)
+# models/*.cbm
+# data/training-results/*.json
