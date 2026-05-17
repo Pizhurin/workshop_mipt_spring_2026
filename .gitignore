@@ -12,6 +12,7 @@ env/
 *.egg-info/
 dist/
 build/
+.parquet
 
 # Jupyter
 .ipynb_checkpoints/
