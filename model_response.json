@@ -1,0 +1,19 @@
+{
+    "batch_id": "76847600-6840-417a-bbf3-c9cbb79c6595",
+    "batch_timestamp": "2026-05-17T11:58:24.991913",
+    "processed_at": "2026-05-17T11:58:25.020267",
+    "users_count": 2,
+    "status": "processed",
+    "users": [
+        {
+            "profile_id": "b25135c7-b4f8-3552-8eb6-46331ceea5c9",
+            "entity_id": null,
+            "probability": null
+        },
+        {
+            "profile_id": "u55135c7-b4f8-3552-8eb6-46331ceea5c9",
+            "entity_id": null,
+            "probability": null
+        }
+    ]
+}

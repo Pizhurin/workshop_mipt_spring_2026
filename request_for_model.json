@@ -1,0 +1,70 @@
+[
+    {
+        "created_at": "2025-11-01T00:27:04.995000",
+        "first_name": "Анфиса",
+        "last_name": null,
+        "email": "lqvxvltxx@mail.ru",
+        "phone": null,
+        "birthday": null,
+        "sex": "female",
+        "non_processing_features": {
+            "device": "smartphone",
+            "geoname_id": 2013348,
+            "browser": "chrome",
+            "osfamily": "android",
+            "subdivision_1_iso_code": "PRI"
+        },
+        "realtime_features": {
+            "country": "RU",
+            "is_million": false,
+            "tz_offset": 10,
+            "geoname": "Vladivostok",
+            "geoid": 2013348,
+            "local_hour": 10,
+            "day": 5,
+            "population": 604901
+        },
+        "fs_features": {
+            "visited_30": [
+                250,
+                1805
+            ],
+            "visited_365": 1813
+        },
+        "profile_id": "b25135c7-b4f8-3552-8eb6-46331ceea5c9"
+    },
+        {
+        "created_at": "2026-01-01T00:27:04.995000",
+        "first_name": "Юля",
+        "last_name": null,
+        "email": "lqvxvltxx@mail.ru",
+        "phone": null,
+        "birthday": null,
+        "sex": "female",
+        "non_processing_features": {
+            "device": "smartphone",
+            "geoname_id": 2013348,
+            "browser": "chrome",
+            "osfamily": "android",
+            "subdivision_1_iso_code": "PRI"
+        },
+        "realtime_features": {
+            "country": "RU",
+            "is_million": false,
+            "tz_offset": 10,
+            "geoname": "Vladivostok",
+            "geoid": 2013348,
+            "local_hour": 10,
+            "day": 5,
+            "population": 604901
+        },
+        "fs_features": {
+            "visited_30": [
+                250,
+                1805
+            ],
+            "visited_365": 1813
+        },
+        "profile_id": "u55135c7-b4f8-3552-8eb6-46331ceea5c9"
+    }
+]
