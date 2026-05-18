@@ -195,8 +195,8 @@ A: Измените features.py или blocking.py, затем переобуч�
 
 ## Профилирование
 `kernprof -l -v train_model.py` - запуск профайлера
+`kernprof -l -v -o "reports/profile_$(date +%Y%m%d_%H%M%S).lprof" train_model.py` - с соранением timestamp метки в отчёте
 `python -m line_profiler reports/profiling/train_model.py.lprof > profile_report.txt` - сохранить в .txt для анализа
-``
 ``
 
 ## Покрытие

@@ -3,12 +3,11 @@
 Многопроходный блокинг.
 """
 
+import pandas as pd
 import logging
 import itertools
 from collections import defaultdict
 from typing import List, Tuple
-
-import pandas as pd
 
 from src.config_loader import CONFIG
 from .utils import frozenset_to_str

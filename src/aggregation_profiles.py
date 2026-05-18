@@ -6,6 +6,7 @@ import pandas as pd
 import logging
 from .utils import frozenset_to_str, normalize_bool
 
+
 logger = logging.getLogger(__name__)
 
 try:

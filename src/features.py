@@ -8,6 +8,8 @@ import numpy as np
 import pandas as pd
 from typing import List, Tuple, Dict, Optional
 from collections import defaultdict
+from Levenshtein import distance as lev_distance
+
 
 from .utils import (
     frozenset_to_str,
@@ -56,7 +58,6 @@ def compute_idf_email_domains(profiles_df: pd.DataFrame) -> Dict:
 # Вспомогательные функции
 @profile
 def _normalized_levenshtein(str_a: str, str_b: str) -> float:
-    from Levenshtein import distance as lev_distance
     if not str_a and not str_b: return 0.0
     if not str_a or not str_b: return 1.0
     return lev_distance(str_a, str_b) / max(len(str_a), len(str_b))
@@ -71,8 +72,11 @@ def _char_jaccard(str_a: str, str_b: str, ngram: int = 2) -> float:
 
 @profile
 def time_overlap_ratio(set1, set2):
-    if not set1 or not set2: return 0.0
-    return overlap_size(set1, set2) / len(set1 | set2)
+    if not set1 or not set2:
+        return 0.
+    overlap = overlap_size(set1, set2)  # вычислять надо 1 раз,
+    # а не 2 раза одно и то же в выражении ниже
+    return overlap / (len(set1) + len(set2) - overlap)
 
 @profile
 def add_conflict_features(features, rows1, rows2):
@@ -119,6 +123,14 @@ def build_features(
     else:
         entity_id_map = None
 
+    phone_prefix_set = profiles_df['phone_prefix'].map(safe_set)
+    device_set = profiles_df['device'].map(safe_set)
+    osfamily_set = profiles_df['osfamily'].map(safe_set)
+    if 'active_days' in profiles_df.columns:
+        active_days_set = profiles_df['active_days'].map(safe_set)
+    else:
+        active_days_set = None
+
     X_batches, y_batches = [], []
 
     for start in range(0, len(pairs), batch_size):
@@ -151,8 +163,8 @@ def build_features(
         ]
 
         # Phone
-        pref1 = rows1["phone_prefix"].apply(safe_set)
-        pref2 = rows2["phone_prefix"].apply(safe_set)
+        pref1 = phone_prefix_set[idx1].tolist()
+        pref2 = phone_prefix_set[idx2].tolist()
         features["phone_prefix_jaccard"] = [
             jaccard(a, b) for a, b in zip(pref1, pref2)
         ]
@@ -168,11 +180,11 @@ def build_features(
             rows1["tz_offset"].fillna(0) - rows2["tz_offset"].fillna(0)
         )
 
-        # Устройства: преобразуем один раз, используем для всех признаков
-        dev1 = rows1["device"].apply(safe_set)
-        dev2 = rows2["device"].apply(safe_set)
-        os1 = rows1["osfamily"].apply(safe_set)
-        os2 = rows2["osfamily"].apply(safe_set)
+        # Устройства (готовые множества)
+        dev1 = device_set[idx1].tolist()
+        dev2 = device_set[idx2].tolist()
+        os1  = osfamily_set[idx1].tolist()
+        os2  = osfamily_set[idx2].tolist()
 
         features["device_jaccard"] = [jaccard(a, b) for a, b in zip(dev1, dev2)]
         features["osfamily_jaccard"] = [jaccard(a, b) for a, b in zip(os1, os2)]
@@ -205,12 +217,12 @@ def build_features(
             pd.to_datetime(rows2["last_event_date"])
         ).dt.total_seconds() / 86400
 
-        days1 = rows1.get(
-            "active_days", pd.Series([set()] * len(rows1))
-        ).apply(safe_set)
-        days2 = rows2.get(
-            "active_days", pd.Series([set()] * len(rows2))
-        ).apply(safe_set)
+        if active_days_set is not None:
+            days1 = active_days_set[idx1].tolist()
+            days2 = active_days_set[idx2].tolist()
+        else:
+            days1 = [set() for _ in idx1]
+            days2 = [set() for _ in idx2]
         features["day_overlap_ratio"] = [
             time_overlap_ratio(a, b) for a, b in zip(days1, days2)
         ]

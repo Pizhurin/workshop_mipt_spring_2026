@@ -3,8 +3,8 @@
 Общие утилиты для Entity Resolution пайплайна.
 """
 
-import pandas as pd
 import math
+import pandas as pd
 from typing import Set, Any, Union
 
 

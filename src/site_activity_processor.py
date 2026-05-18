@@ -2,9 +2,7 @@
 """
 Собирает индекс по цифровому следу пользователя
 """
-import math
 import pandas as pd
-
 import logging
 
 logger = logging.getLogger(__name__)

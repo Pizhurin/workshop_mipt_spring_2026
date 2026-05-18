@@ -3,8 +3,8 @@
 Собирает индекс по почтовой активности пользователя
 """
 import pandas as pd
-
 import logging
+
 
 logger = logging.getLogger(__name__)
 
