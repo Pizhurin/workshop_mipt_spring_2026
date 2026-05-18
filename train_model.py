@@ -20,6 +20,13 @@ from src.clustering import hierarchical_average_clustering, evaluate_clustering
 logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
 
+try:
+    profile
+except NameError:
+    def profile(func):
+        return func
+
+@profile
 def get_latest_parquet(directory="data/raw/training"):
     path = Path(directory)
     parquet_files = list(path.glob("*.parquet"))
@@ -29,6 +36,7 @@ def get_latest_parquet(directory="data/raw/training"):
     logger.info(f"Выбран файл: {latest}")
     return latest
 
+@profile
 def main():
     # 1. Загрузка и предобработка (с разбиением на train/val/test 60/20/20)
     DATA_PATH = get_latest_parquet()
@@ -46,13 +54,26 @@ def main():
     val_site_index = {pid: site_index[pid] for pid in val_profiles.index}
     test_site_index = {pid: site_index[pid] for pid in test_profiles.index}
 
-    train_pairs = blocking_pipeline(train_profiles, train_site_index, max_group_size=CONFIG['blocking']['max_group_size'])
-    val_pairs = blocking_pipeline(val_profiles, val_site_index, max_group_size=CONFIG['blocking']['max_group_size'])
-    test_pairs = blocking_pipeline(test_profiles, test_site_index, max_group_size=CONFIG['blocking']['max_group_size'])
+    train_pairs = blocking_pipeline(
+        train_profiles, train_site_index,
+        max_group_size=CONFIG['blocking']['max_group_size']
+    )
+    val_pairs = blocking_pipeline(
+        val_profiles, val_site_index,
+        max_group_size=CONFIG['blocking']['max_group_size']
+    )
+    test_pairs = blocking_pipeline(
+        test_profiles, test_site_index,
+        max_group_size=CONFIG['blocking']['max_group_size']
+    )
 
     # 3. Вычисление IDF
-    idf_sites = compute_idf_sites(site_index, (profiles_df["split"] == "train").sum())
-    idf_domains = compute_idf_email_domains(profiles_df[profiles_df["split"] == "train"])
+    idf_sites = compute_idf_sites(
+        site_index, (profiles_df["split"] == "train").sum()
+    )
+    idf_domains = compute_idf_email_domains(
+        profiles_df[profiles_df["split"] == "train"]
+    )
 
     # 4. Балансировка пар
     entity_map = profiles_df["entity_id"].to_dict()
@@ -61,18 +82,28 @@ def main():
     ratio = CONFIG['training']['balance_ratio']
     n_neg = min(len(pos_pairs) * ratio, len(neg_pairs))
     rng = np.random.default_rng(CONFIG['seed'])
-    sampled_neg = [neg_pairs[i] for i in rng.choice(len(neg_pairs), n_neg, replace=False)]
+    sampled_neg = [
+        neg_pairs[i] for i in rng.choice(len(neg_pairs), n_neg, replace=False)
+    ]
     train_pairs_balanced = pos_pairs + sampled_neg
     rng.shuffle(train_pairs_balanced)
-    logger.info(f"Train: {len(pos_pairs)} pos, {len(sampled_neg)} neg (ratio {ratio})")
+    logger.info(
+        f"Train: {len(pos_pairs)} pos, {len(sampled_neg)} neg (ratio {ratio})"
+    )
 
     # 5. Построение признаков
-    X_train, y_train = build_features(train_pairs_balanced, profiles_df, site_index, cat_index,
-                                      idf_sites, idf_domains, training=True)
-    X_val, y_val = build_features(val_pairs, profiles_df, site_index, cat_index,
-                                  idf_sites, idf_domains, training=True)
-    X_test, y_test = build_features(test_pairs, profiles_df, site_index, cat_index,
-                                    idf_sites, idf_domains, training=True)
+    X_train, y_train = build_features(
+        train_pairs_balanced, profiles_df, site_index, cat_index,
+        idf_sites, idf_domains, training=True
+    )
+    X_val, y_val = build_features(
+        val_pairs, profiles_df, site_index, cat_index,
+        idf_sites, idf_domains, training=True
+    )
+    X_test, y_test = build_features(
+        test_pairs, profiles_df, site_index, cat_index,
+        idf_sites, idf_domains, training=True
+    )
 
     # 6. Обучение модели
     model = CatBoostClassifier(

@@ -8,12 +8,18 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+try:
+    profile
+except NameError:
+    def profile(func):
+        return func
 
+@profile
 def build_cat_index(df_clean):
     """
     Строит индекс почтовой активности профилей.
 
-    Категории определяются динамически — все колонки, 
+    Категории определяются динамически — все колонки,
     соответствующие паттернам почтовых признаков.
 
     Вход: df_clean после full_preprocessing()
@@ -37,23 +43,34 @@ def build_cat_index(df_clean):
     for cat in cat_categories:
         logger.debug(f"    {cat}")
 
-    cat_index = {}
 
-    # Инициализируем словарь для каждого profile_id
-    for pid in df_clean["profile_id"].unique():
-        cat_index[pid] = {cat: set() for cat in cat_categories}
-        cat_index[pid]["_all"] = set()
+    gb = df_clean.groupby("profile_id")
+    # Только с _all, категории потом
+    all_pids = df_clean["profile_id"].unique()
+    cat_index = {pid: {"_all": set()} for pid in all_pids}
 
     # Заполняем по категориям
     for cat in cat_categories:
-        grouped = df_clean.groupby("profile_id")[cat].apply(
-            lambda x: {str(v).strip().lower() for v in x.dropna() 
-                      if v and pd.notna(v) and str(v).strip()}
+        grouped = gb[cat].apply(
+            lambda x: {
+                s.lower()
+                for v in x
+                if pd.notna(v) and v
+                and (s := str(v).strip())
+            }
         )
 
         for pid, values in grouped.items():
+            if pid not in cat_index:  # защита: если pid не в all_pids
+                cat_index[pid] = {"_all": set()}
             cat_index[pid][cat] = values
             cat_index[pid]["_all"].update(values)
+
+    # Добавляем отсутствующие ключи категорий для всех профилей
+    for pid in cat_index:
+        for cat in cat_categories:
+            if cat not in cat_index[pid]:
+                cat_index[pid][cat] = set()
 
     logger.info(f"  Профилей в индексе: {len(cat_index)}")
 

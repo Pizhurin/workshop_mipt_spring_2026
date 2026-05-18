@@ -5,6 +5,13 @@ from pathlib import Path
 
 CONFIG_PATH = Path(__file__).parent.parent / "config.yaml"
 
+try:
+    profile
+except NameError:
+    def profile(func):
+        return func
+
+@profile
 def load_config():
     with open(CONFIG_PATH, 'r') as f:
         config = yaml.safe_load(f)
@@ -12,6 +19,7 @@ def load_config():
 
 CONFIG = load_config()
 
+@profile
 def get_active_experiment():
     """
     Возвращает кортеж (config, model_path), где config – словарь параметров эксперимента,

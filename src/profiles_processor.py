@@ -18,7 +18,14 @@ from .cat_activity_processor import build_cat_index
 
 logger = logging.getLogger(__name__)
 
+try:
+    profile
+except NameError:
+    def profile(func):
+        return func
 
+
+@profile
 def add_train_val_test_split(profiles_df):
     """
     Добавляет колонку 'split' с разбиением 60/20/20 на уровне entity_id.
@@ -69,22 +76,26 @@ def add_train_val_test_split(profiles_df):
     for split_name in ["train", "val", "test"]:
         n = profiles_df["split"].eq(split_name).sum()
         n_mp = profiles_df[
-            (profiles_df["split"] == split_name) 
+            (profiles_df["split"] == split_name)
             & (profiles_df["entity_type"] == "multi_profile")
         ].shape[0]
         logger.info(f"  {split_name}: {n:,} профилей (multi: {n_mp:,})")
 
     return profiles_df
 
+@profile
 def add_temporal_features(profiles_df, df_clean):
     """Добавляет временные признаки в profiles_df из сырых событий."""
     # first_event_time, last_event_time
-    time_agg = df_clean.groupby("profile_id")["created_at"].agg(["min", "max"])
-    time_agg.columns = ["first_event_time", "last_event_time"]
+    gb = df_clean.groupby("profile_id")
 
-    # active_days, active_hours
-    time_agg["active_days"] = df_clean.groupby("profile_id")["day"].apply(lambda x: set(x.dropna()))
-    time_agg["active_hours"] = df_clean.groupby("profile_id")["local_hour"].apply(lambda x: set(x.dropna()))
+    # Одна агрегация вместо раздельных вызовов agg и apply
+    time_agg = gb.agg(
+        first_event_time=("created_at", "min"),
+        last_event_time=("created_at", "max"),
+        active_days=("day", lambda x: set(x[x.notna()])),  # dropna() оч тяжелая
+        active_hours=("local_hour", lambda x: set(x[x.notna()]))
+    )
 
     # Присоединяем к profiles_df
     profiles_df = profiles_df.join(time_agg)
@@ -94,6 +105,7 @@ def add_temporal_features(profiles_df, df_clean):
 
     return profiles_df
 
+@profile
 def process_profiles(df_raw, split_data=False):
     """
     Полный цикл обработки.
@@ -114,9 +126,10 @@ def process_profiles(df_raw, split_data=False):
     has_entity = 'entity_id' in df_raw.columns
     if not has_entity:
         # Добавляем фиктивные колонки для прохождения preprocessing
-        df_raw = df_raw.copy()
-        df_raw['entity_id'] = df_raw['profile_id']
-        df_raw['entity_type'] = 'single_profile'
+        df_raw = df_raw.assign(  # единый assign вместо .copy() + 2 присваивания
+            entity_id=df_raw['profile_id'],
+            entity_type='single_profile'
+        )
         split_data = False  # отключаем разбиение, так как нет истинных сущностей
         logger.info("Входные данные не содержат entity_id. Добавлены фиктивные колонки для обработки.")
 

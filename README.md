@@ -194,8 +194,10 @@ A: На основе анонимизированных данных дости�
 A: Измените features.py или blocking.py, затем переобучите модель – старый эксперимент останется, а новый будет сохранён отдельно.
 
 ## Профилирование
-
-
+`kernprof -l -v train_model.py` - запуск профайлера
+`python -m line_profiler reports/profiling/train_model.py.lprof > profile_report.txt` - сохранить в .txt для анализа
+``
+``
 
 ## Покрытие
 `coverage run --data-file=reports/.coverage train_model.py` - покрытие с сохранением в директорию (если параметр `--data-file` не указан, то `.coverage` будет сохранен в текущей директории)

@@ -16,7 +16,14 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+try:
+    profile
+except NameError:
+    def profile(func):
+        return func
+
 # ─── non_processing_feature, fs_features ────────────────
+@profile
 def parse_array_like_features(features_list):
     """
     Парсит массив признаков с словарь.
@@ -35,6 +42,7 @@ def parse_array_like_features(features_list):
     return parsed_features
 
 # ─── realtime_features ───────────────────────────────────
+@profile
 def json_unpack(df_col):
     """
     Распаковывает JSON столбец.
@@ -53,6 +61,7 @@ def json_unpack(df_col):
         return {}
 
 # ─── Entity ──────────────────────────────────────────────
+@profile
 def unify_entity_ids(df):
     """
     Для profile_id с несколькими entity_id берёт актуальный entity_id
@@ -78,7 +87,7 @@ def unify_entity_ids(df):
     return df
 
 # ─── Email ──────────────────────────────────────────────
-
+@profile
 def normalize_email(email_str):
     """Приводит email к нижнему регистру, удаляет пробелы, валидирует."""
     if pd.isna(email_str):
@@ -89,6 +98,7 @@ def normalize_email(email_str):
         return None
     return s
 
+@profile
 def extract_email_domain(email_str):
     """Извлекает доменную часть email."""
     if pd.isna(email_str):
@@ -100,7 +110,7 @@ def extract_email_domain(email_str):
 
 
 # ─── Phone ──────────────────────────────────────────────
-
+@profile
 def normalize_phone(phone_str):
     """Оставляет только цифры, приводит к формату 79XXXXXXXXX."""
     if pd.isna(phone_str):
@@ -119,6 +129,7 @@ def normalize_phone(phone_str):
 
     return digits
 
+@profile
 def extract_phone_prefix(phone_str):
     """Извлекает код страны + первые 3 цифры оператора."""
     if pd.isna(phone_str):
@@ -129,7 +140,7 @@ def extract_phone_prefix(phone_str):
     return None
 
 # ─── Names ──────────────────────────────────────────────
-
+@profile
 def normalize_name(name_str):
     """Стрип, lower case, удаление спецсимволов кроме дефиса и апострофа."""
     if pd.isna(name_str):
@@ -145,7 +156,7 @@ def normalize_name(name_str):
     return s
 
 # ─── Birthday ─────────────────────────────────────────────
-
+@profile
 def normalize_birthday(birthday_val):
     """
     Приводит дату рождения к строке YYYY-MM-DD или None.
@@ -165,6 +176,7 @@ def normalize_birthday(birthday_val):
         return None
 
 # ─── Извлекаем данные из json and array-like полей ─────────────────────────────────
+@profile
 def extract_array_features(df, col_name):
     """Для fs_features, non_processing_features"""
     parsed_array = df[col_name].apply(parse_array_like_features)
@@ -173,6 +185,7 @@ def extract_array_features(df, col_name):
     df = df.drop(columns=[col_name])
     return df
 
+@profile
 def extract_json_features(df, col_name):
     """Для realtime_features"""
     parsed_json = df[col_name].apply(json_unpack)
@@ -182,7 +195,7 @@ def extract_json_features(df, col_name):
     return df
 
 # ─── Применяем нормализацию и извлекаем доп.данные из контактов ────────────────────
-
+@profile
 def normalize_contacts(df):
     """Применяет нормализацию email, phone, имен ко всем строкам."""
     df = df.copy()
@@ -196,6 +209,7 @@ def normalize_contacts(df):
     return df
 
 # ─── Весь пайплайн ─────────────────────────────────────────────────────────────────
+@profile
 def full_preprocessing(df):
     """
     Полный пайплайн предобработки.
@@ -243,8 +257,11 @@ def full_preprocessing(df):
     if 'entity_type' not in df.columns:
         # Определяем количество профилей в каждой entity
         entity_counts = df.groupby('entity_id')['profile_id'].transform('nunique')
-        df['entity_type'] = entity_counts.apply(
-            lambda x: 'multi_profile' if x > 1 else 'single_profile'
+        # Анастасия, векторизованно присваиваем, вместо медленного apply
+        df['entity_type'] = np.where(
+            entity_counts > 1,  # условие
+            'multi_profile',  # если True
+            'single_profile'  # иначе
         )
         logger.info("Колонка 'entity_type' вычислена автоматически.")
 

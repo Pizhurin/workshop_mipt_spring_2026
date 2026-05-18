@@ -16,6 +16,12 @@ from src.clustering import hierarchical_average_clustering, evaluate_clustering
 logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
 
+try:
+    profile
+except NameError:
+    def profile(func):
+        return func
+
 def evaluate_on_labeled_data(df_raw, config, model, threshold=None,
                              output_report=None, output_clusters=None):
     if threshold is None:

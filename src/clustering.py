@@ -11,6 +11,13 @@ import pandas as pd
 
 logger = logging.getLogger(__name__)
 
+try:
+    profile
+except NameError:
+    def profile(func):
+        return func
+
+@profile
 def evaluate_clustering(clusters, profiles_df, split="test"):
     """
     Оценка качества кластеризации. Только для обучения
@@ -39,6 +46,7 @@ def evaluate_clustering(clusters, profiles_df, split="test"):
         'partial': partial
     }
 
+@profile
 def hierarchical_average_clustering(pairs, probabilities, all_profiles, threshold=0.7):
     """
     Агломеративная кластеризация с методом средней связи (average linkage).
@@ -86,6 +94,7 @@ def hierarchical_average_clustering(pairs, probabilities, all_profiles, threshol
     logger.info(f"  Создано {len(result)} кластеров")
     return result
 
+@profile
 def is_confident_cluster(cluster, prob_map, site_index, profiles_df,
                          min_avg_prob=0.9,
                          max_pairs_without_sites_ratio=0.5,

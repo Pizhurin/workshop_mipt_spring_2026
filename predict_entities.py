@@ -15,6 +15,13 @@ from src.clustering import hierarchical_average_clustering, is_confident_cluster
 logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
 
+try:
+    profile
+except NameError:
+    def profile(func):
+        return func
+
+@profile
 def load_model_from_experiment():
     config, model_path = get_active_experiment()
     if model_path is None or not model_path.exists():
@@ -23,6 +30,7 @@ def load_model_from_experiment():
     model.load_model(model_path)
     return config, model
 
+@profile
 def predict_entities(df_raw, model, config, threshold=None,
                      output_dir=None,
                      base_name=None):
@@ -141,6 +149,7 @@ def predict_entities(df_raw, model, config, threshold=None,
 
     return auto_df
 
+@profile
 def get_latest_parquet(directory="data/raw/inference"):
     path = Path(directory)
     parquet_files = list(path.glob("*.parquet"))

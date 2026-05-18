@@ -15,7 +15,13 @@ from .utils import frozenset_to_str
 
 logger = logging.getLogger(__name__)
 
+try:
+    profile
+except NameError:
+    def profile(func):
+        return func
 
+@profile
 def make_pairs(indices: List, max_group_size: int = CONFIG['blocking']['max_group_size']) -> List[Tuple]:
     """Генерирует пары с защитой от слишком больших групп."""
     if len(indices) < 2:
@@ -25,9 +31,9 @@ def make_pairs(indices: List, max_group_size: int = CONFIG['blocking']['max_grou
         indices = indices[:max_group_size]
     return list(itertools.combinations(indices, 2))
 
-
-def blocking_pipeline(profiles_df: pd.DataFrame, 
-                     site_index: dict, 
+@profile
+def blocking_pipeline(profiles_df: pd.DataFrame,
+                     site_index: dict,
                      max_group_size: int = CONFIG['blocking']['max_group_size']) -> List[Tuple]:
     """Основной пайплайн блокинга."""
     logger.info("=" * 70)
@@ -61,7 +67,7 @@ def blocking_pipeline(profiles_df: pd.DataFrame,
 
 
 # Блоки
-
+@profile
 def blocking_by_sites(profiles_df, site_index, max_group_size=CONFIG['blocking']['max_group_size']):
     site_to_profiles = defaultdict(list)
     for pid, categories in site_index.items():
@@ -74,7 +80,7 @@ def blocking_by_sites(profiles_df, site_index, max_group_size=CONFIG['blocking']
             pairs.extend(make_pairs(plist, max_group_size))
     return list(set(tuple(sorted(p)) for p in pairs))
 
-
+@profile
 def blocking_by_geo_device(profiles_df, max_group_size=CONFIG['blocking']['max_group_size']):
     mask = (
         profiles_df["geoname_id"].notna() &
@@ -99,7 +105,7 @@ def blocking_by_geo_device(profiles_df, max_group_size=CONFIG['blocking']['max_g
     logger.info(f"  Ключей: {len(grouped):,}, групп ≥2: {sum(1 for x in grouped if len(x) >= 2):,}")
     return list(set(tuple(sorted(p)) for p in pairs))
 
-
+@profile
 def blocking_by_name_geo(profiles_df, max_group_size=CONFIG['blocking']['max_group_size']):
     mask = profiles_df["first_name_clean"].notna() & profiles_df["geoname_id"].notna()
     df = profiles_df[mask].copy()
@@ -123,7 +129,7 @@ def blocking_by_name_geo(profiles_df, max_group_size=CONFIG['blocking']['max_gro
     logger.info(f"  Ключей: {len(grouped):,}, групп ≥2: {sum(1 for x in grouped if len(x) >= 2):,}")
     return list(set(tuple(sorted(p)) for p in pairs))
 
-
+@profile
 def blocking_by_sex_geo(profiles_df, max_group_size=CONFIG['blocking']['max_group_size']):
     key_to_profiles = defaultdict(list)
     for pid, row in profiles_df.iterrows():
@@ -141,7 +147,7 @@ def blocking_by_sex_geo(profiles_df, max_group_size=CONFIG['blocking']['max_grou
     logger.info(f"  Ключей: {len(key_to_profiles):,}, групп ≥2: {sum(1 for v in key_to_profiles.values() if len(v) >= 2):,}")
     return list(set(tuple(sorted(p)) for p in pairs))
 
-
+@profile
 def blocking_by_tz_geo(profiles_df, max_group_size=CONFIG['blocking']['max_group_size']):
     key_to_profiles = defaultdict(list)
     for pid, row in profiles_df.iterrows():
@@ -159,7 +165,7 @@ def blocking_by_tz_geo(profiles_df, max_group_size=CONFIG['blocking']['max_group
     logger.info(f"  Ключей: {len(key_to_profiles):,}, групп ≥2: {sum(1 for v in key_to_profiles.values() if len(v) >= 2):,}")
     return list(set(tuple(sorted(p)) for p in pairs))
 
-
+@profile
 def blocking_by_device_tz_geo(profiles_df, max_group_size=CONFIG['blocking']['max_group_size']):
     key_to_profiles = defaultdict(list)
     for pid, row in profiles_df.iterrows():
