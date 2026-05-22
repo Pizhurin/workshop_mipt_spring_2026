@@ -1,0 +1,103 @@
+{
+  "experiment_id": "2026-05-22_14-25-01",
+  "model_filename": "catboost_model_2026-05-22_14-25-01.cbm",
+  "blocking_recall": 0.9675425038639877,
+  "pair_classification_report": {
+    "0": {
+      "precision": 0.999023524989465,
+      "recall": 0.9997405266123875,
+      "f1-score": 0.9993818971986216,
+      "support": 4216232.0
+    },
+    "1": {
+      "precision": 0.7859937402190923,
+      "recall": 0.49373310395674613,
+      "f1-score": 0.6064905660377359,
+      "support": 8138.0
+    },
+    "accuracy": 0.9987657331152338,
+    "macro avg": {
+      "precision": 0.8925086326042786,
+      "recall": 0.7467368152845668,
+      "f1-score": 0.8029362316181787,
+      "support": 4224370.0
+    },
+    "weighted avg": {
+      "precision": 0.9986131356560349,
+      "recall": 0.9987657331152338,
+      "f1-score": 0.9986250151894729,
+      "support": 4224370.0
+    }
+  },
+  "n_lost_by_clustering": 719,
+  "recovery_multi": 0.9271523178807947,
+  "n_true_multi": 755,
+  "perfect_multi": 700,
+  "partially_recovered": 55,
+  "fully_broken": 0,
+  "merged_with_others": 41,
+  "total_clusters": 955,
+  "status_counts": {
+    "perfect": 700,
+    "merged": 33,
+    "split": 22
+  },
+  "num_pairs_generated": 4224370,
+  "num_profiles_test": 12463,
+  "sizes_true": {
+    "1": 9059,
+    "2": 1560,
+    "3": 49,
+    "4": 4,
+    "5": 1,
+    "116": 1
+  },
+  "sizes_pred": {
+    "2": 885,
+    "3": 56,
+    "4": 5,
+    "5": 2,
+    "7": 2,
+    "12": 1,
+    "18": 1,
+    "24": 1,
+    "25": 1,
+    "30": 1
+  },
+  "config": {
+    "seed": 42,
+    "blocking": {
+      "max_group_size": 800,
+      "use_geo_device": true,
+      "use_sites": true
+    },
+    "model": {
+      "depth": 3,
+      "early_stopping_rounds": 150,
+      "eval_metric": "F1",
+      "iterations": 2500,
+      "l2_leaf_reg": 30,
+      "learning_rate": 0.03,
+      "scale_pos_weight": 10,
+      "threshold": 0.99
+    },
+    "training": {
+      "balance_ratio": 8
+    },
+    "clustering": {
+      "eval_split": "test",
+      "method": "complete",
+      "threshold": 0.99
+    },
+    "confidence": {
+      "check_conflicts": true,
+      "min_avg_prob": 0.92
+    },
+    "paths": {
+      "evaluation_results": "data/evaluation-results",
+      "inference_results": "data/inference-results",
+      "model_dir": "models",
+      "training_results": "data/training-results"
+    }
+  }
+}

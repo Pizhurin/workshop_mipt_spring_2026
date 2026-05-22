@@ -90,7 +90,6 @@ def add_conflict_features(features, rows1, rows2):
         np.abs(rows1['tz_offset'].fillna(0) - rows2['tz_offset'].fillna(0)) > 4
     ).astype(int)
 
-    # Векторизованная проверка непустоты device / замена apply(frozenset_to_str)
     dev1_nonempty, dev2_nonempty = (
         rows1['device'].astype(bool),
         rows2['device'].astype(bool)
@@ -99,7 +98,7 @@ def add_conflict_features(features, rows1, rows2):
     features['device_os_conflict'] = (
           dev1_nonempty
         & dev2_nonempty
-        & (rows1['osfamily'] != rows2['osfamily'])  # прямое сравнение
+        & (rows1['osfamily'] != rows2['osfamily'])
     ).astype(int)
     return features
 
@@ -180,7 +179,7 @@ def build_features(
             rows1["tz_offset"].fillna(0) - rows2["tz_offset"].fillna(0)
         )
 
-        # Устройства (готовые множества)
+        # Устройства
         dev1 = device_set[idx1].tolist()
         dev2 = device_set[idx2].tolist()
         os1  = osfamily_set[idx1].tolist()

@@ -13,9 +13,10 @@ from catboost import CatBoostClassifier
 
 from src.config_loader import CONFIG
 from src.profiles_processor import process_profiles
-from src.blocking import blocking_pipeline
+from src.blocking import blocking_pipeline, compute_blocking_recall
 from src.features import build_features, compute_idf_sites, compute_idf_email_domains
-from src.clustering import hierarchical_average_clustering, evaluate_clustering
+from src.clustering import hierarchical_clustering, evaluate_clustering
+from src.utils import make_json_serializable
 
 logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
@@ -46,7 +47,7 @@ def main():
 
     # 2. Блокинг
     logger.info("Генерация пар через блокинг...")
-    train_profiles = profiles_df[profiles_df["split"] == "train"]
+    train_profiles = profiles_df[profiles_df["split"] == "train"] 
     val_profiles = profiles_df[profiles_df["split"] == "val"]
     test_profiles = profiles_df[profiles_df["split"] == "test"]
 
@@ -66,6 +67,10 @@ def main():
         test_profiles, test_site_index,
         max_group_size=CONFIG['blocking']['max_group_size']
     )
+
+    blocking_recall_train = compute_blocking_recall(train_pairs, profiles_df, 'train')
+    blocking_recall_val = compute_blocking_recall(val_pairs, profiles_df, 'val')
+    blocking_recall_test = compute_blocking_recall(test_pairs, profiles_df, 'test')
 
     # 3. Вычисление IDF
     idf_sites = compute_idf_sites(
@@ -121,20 +126,31 @@ def main():
 
     # 7. Оценка на тесте (парная)
     y_test_proba = model.predict_proba(X_test)[:, 1]
-    thr = CONFIG['clustering']['threshold']
-    y_pred = (y_test_proba >= thr).astype(int)
+    
+    thr_matching = CONFIG['model']['threshold']
+    logger.info(f"Threshold для модели {thr_matching}")
+    
+    y_pred = (y_test_proba >= thr_matching).astype(int)
     print("\n--- Оценка пар на тесте ---")
     print(classification_report(y_test, y_pred, digits=4))
-
+    
     # 8. Кластеризация на тесте
     all_test_profiles = set()
     for a,b in test_pairs:
         all_test_profiles.add(a)
         all_test_profiles.add(b)
     all_test_profiles = list(all_test_profiles)
-    clusters = hierarchical_average_clustering(test_pairs, y_test_proba, all_test_profiles, threshold=thr)
-    metrics = evaluate_clustering(clusters, profiles_df, split="test")
 
+    clusters = hierarchical_clustering(
+        test_pairs, y_test_proba, all_test_profiles
+    )
+    
+    metrics = evaluate_clustering(clusters,
+                                  profiles_df,
+                                  pairs=test_pairs,
+                                  split=CONFIG['clustering']['eval_split']
+                                 )
+    
     # 9. Сохранение модели и отчёта
     # Генерируем уникальный идентификатор эксперимента
     timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -159,17 +175,21 @@ def main():
     report = {
         "experiment_id": experiment_id,
         "model_filename": model_filename,
-        "recovery_rate": metrics['recovery_rate'],
-        "perfect_recovered": metrics['perfect_recovered'],
+        "blocking_recall": blocking_recall_test,
+        "pair_classification_report": classification_report(y_test, y_pred, output_dict=True),
+        "n_lost_by_clustering": metrics['n_lost_by_clustering'],
+        "recovery_multi": metrics['recovery_multi'],
         "n_true_multi": metrics['n_true_multi'],
-        "partial_clusters": metrics['partial'],
-        "total_clusters": len(clusters),
-        "true_multi_sizes": sizes_true,
-        "predicted_cluster_sizes": sizes_pred,
-        "threshold_used": thr,
+        "perfect_multi": metrics['perfect_multi'],
+        "partially_recovered": metrics['partially_recovered'],
+        "fully_broken": metrics['fully_broken'],
+        "merged_with_others": metrics['merged_with_others'],
+        "total_clusters": metrics['total_clusters'],
+        "status_counts": metrics['status_counts'],
         "num_pairs_generated": len(test_pairs),
         "num_profiles_test": len(profiles_df[profiles_df["split"] == "test"]),
-        "pair_classification_report": classification_report(y_test, y_pred, output_dict=True),
+        "sizes_true": sizes_true,
+        "sizes_pred": sizes_pred,
         "config": {
             "seed": CONFIG['seed'],
             "blocking": CONFIG['blocking'],
@@ -181,6 +201,8 @@ def main():
         }
     }
 
+    report = make_json_serializable(report)
+    
     report_path = results_dir / f"training_report_{experiment_id}.json"
     with open(report_path, 'w') as f:
         json.dump(report, f, indent=2, ensure_ascii=False)
@@ -195,8 +217,6 @@ def main():
         with open(config_path, 'w') as f:
             yaml.dump(cfg, f, default_flow_style=False, allow_unicode=True)
         logger.info(f"Конфиг обновлён: active_experiment_report = {report_path}")
-
-    print(f"Recovery на тесте: {metrics['recovery_rate']:.1%} (perfect: {metrics['perfect_recovered']}/{metrics['n_true_multi']})")
 
 if __name__ == "__main__":
     main()

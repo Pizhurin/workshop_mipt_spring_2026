@@ -1,9 +1,9 @@
-
 # Entity Resolution Pipeline
 
 Система для связывания профилей (entity resolution) на основе событийной активности.  
 Пайплайн включает предобработку, многопроходный блокинг, генерацию признаков, обучение CatBoost, иерархичную кластеризацию и оценку качества.
 
+Отчет о проделанной работае представлен [здесь](https://docs.google.com/document/d/1jLyp1D6w2UUIogO51iZ4IHcztMuKpNYq4QcyobH6NVw/edit?usp=sharing)
 ---
 
 ## Быстрый старт
@@ -49,24 +49,50 @@ python train_model.py
 - парные метрики (precision/recall/f1 для порога 0.99)
 - recovery rate кластеризации (доля полностью восстановленных мульти-сущностей)
 
-Пример вывода: 
-
-```text
---- Оценка пар на тесте ---
-              precision    recall  f1-score
-           0     0.9999    0.9994    0.9996
-           1     0.7409    0.9289    0.8243
-Recovery на тесте: 42.3% (perfect: 683/1615)
-```
+Дополнительно в `data/training-results` сохраняется детальный отчет с метриками эксперимента.
 
 ### 4. Использование конкретной модели (переключение эксперимента)
 
 Все скрипты всегда используют активный эксперимент, указанный в `config.yaml` (ключ `active_experiment_report`).
 
+
+Структура  `config.yaml`
+```yaml
+active_experiment_report: data/training-results/training_report_*.json # Название эксперимента
+blocking: # Параметры блокинга
+  max_group_size: 800
+  use_geo_device: true
+  use_sites: true
+clustering: # Параметры кластеризации
+  eval_split: test
+  method: complete
+  threshold: 0.85
+confidence: # Параметры для автоматического объединения
+  check_conflicts: true
+  min_avg_prob: 0.99
+model: # Параметры CatBoost
+  depth: 3
+  early_stopping_rounds: 150
+  eval_metric: F1
+  iterations: 2500
+  l2_leaf_reg: 30
+  learning_rate: 0.03
+  scale_pos_weight: 10
+  threshold: 0.99
+paths: # Пути
+  evaluation_results: data/evaluation-results
+  inference_results: data/inference-results
+  model_dir: models
+  training_results: data/training-results
+seed: 42
+training: # Коэффициент балансировки обучающей выборки (чем 
+  balance_ratio: 8
+
+```
 Чтобы переключиться на другую ранее обученную модель:
 
 ```bash
-python set_active_experiment.py data/training-results/training_report_2025-05-16_19-45-47.json
+python set_active_experiment.py data/training-results/training_report_*.json
 ```
 
 После этого `predict_entities.py` и `evaluate.py` будут использовать ту модель и параметры, которые зафиксированы в этом отчёте.
@@ -86,14 +112,6 @@ python predict_entities.py data/raw/inference/my_data.parquet
 - `<basename>_auto.csv` – профили, объединённые в уверенные кластеры (каждому профилю присвоен entity_N)
 - `<basename>_review.csv` – кластеры, которые модель не смогла уверенно классифицировать (с метриками для ручной проверки)
 
-Пример строки из `_auto.csv`:
-
-```text
-profile_id, predicted_entity_id
-abc-123, entity_0
-def-456, entity_0
-xyz-789, entity_1
-```
 
 ### 6. Оценка качества на размеченных данных
 
@@ -185,10 +203,6 @@ A: Это имитация production‑среды – на реальных д�
 
 A: Это кластеры, которые модель сочла недостаточно уверенными. В каждой строке указаны средняя вероятность, доля пар без общих сайтов, разброс дат. Вы можете вручную объединить или разделить их.
 
-**Q: Почему recovery rate меньше 100%?**
-
-A: На основе анонимизированных данных достигнуть более высокого recovery_rate не удалось. Достигнутые 42% являются хорошим результатом при высоком precision (74%).
-
 **Q: Как добавить новые признаки или проходы блокинга?**
 
 A: Измените features.py или blocking.py, затем переобучите модель – старый эксперимент останется, а новый будет сохранён отдельно.
@@ -220,7 +234,7 @@ A: Измените features.py или blocking.py, затем переобуч�
 4. Запустить `python train_model.py`.
 5. После обучения использовать `predict_entities.py` или `evaluate.py` как описано выше.
 
-Все модели и отчёты хранятся в репозитории, поэтому **можно сразу использовать готовую модель**, переключив активный эксперимент.
+**Можно сразу использовать готовую модель и config по умолчанию**, которые были загружены в репозиторий.
 
 **Лицензия**: Студенческая
 

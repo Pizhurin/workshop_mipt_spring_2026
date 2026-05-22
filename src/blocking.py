@@ -31,6 +31,32 @@ def make_pairs(indices: List, max_group_size: int = CONFIG['blocking']['max_grou
     return list(itertools.combinations(indices, 2))
 
 @profile
+def compute_blocking_recall(pairs, profiles_df, split_name):
+    """Вычисляет Blocking Recall"""
+    split = profiles_df[profiles_df["split"] == split_name]
+
+    idx_to_eid = split["entity_id"].to_dict()
+
+    entity_counts = split.groupby("entity_id").size()
+    total_true = (entity_counts * (entity_counts - 1) // 2).sum()
+
+    if total_true == 0:
+        recall = 1.0
+        print(f"Blocking recall ({split_name}): {recall:.4f} (0/0)")
+        return recall
+
+    found_true = len({
+        (min(a, b), max(a, b))
+        for a, b in pairs
+        if a in idx_to_eid and b in idx_to_eid and idx_to_eid[a] == idx_to_eid[b]
+    })
+
+    recall = found_true / total_true
+    logger.info(f"Blocking recall ({split_name}): {recall:.4f} ({found_true}/{total_true})")
+    return recall
+    
+    
+@profile
 def blocking_pipeline(profiles_df: pd.DataFrame,
                      site_index: dict,
                      max_group_size: int = CONFIG['blocking']['max_group_size']) -> List[Tuple]:

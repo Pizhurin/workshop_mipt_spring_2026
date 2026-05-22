@@ -10,7 +10,7 @@ from src.config_loader import get_active_experiment
 from src.profiles_processor import process_profiles
 from src.blocking import blocking_pipeline
 from src.features import build_features
-from src.clustering import hierarchical_average_clustering, is_confident_cluster
+from src.clustering import hierarchical_clustering, is_confident_cluster
 
 logging.basicConfig(level=logging.INFO, format="[%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
@@ -30,8 +30,15 @@ def load_model_from_experiment():
     model.load_model(model_path)
     return config, model
 
+def safe_join(val):
+    """Безопасное преобразование списка в строку."""
+    if isinstance(val, list):
+        return ', '.join(str(x) for x in val)
+    return str(val) if val else ''
+
 @profile
-def predict_entities(df_raw, model, config, threshold=None,
+def predict_entities(df_raw, model, config,
+                     thr_clustering=None,
                      output_dir=None,
                      base_name=None):
     """
@@ -42,12 +49,10 @@ def predict_entities(df_raw, model, config, threshold=None,
     if output_dir is None:
         output_dir = config['paths'].get('inference_results', 'data/inference-results')
 
-    if threshold is None:
-        threshold = config['clustering']['threshold']
-    confidence_cfg = config.get('confidence', {})
-    min_avg_prob = confidence_cfg.get('min_avg_prob', 0.9)
-    max_no_sites_ratio = confidence_cfg.get('max_pairs_without_common_sites_ratio', 0.5)
-    max_days_gap = confidence_cfg.get('max_days_between_events', 730)
+    if thr_clustering is None:
+        thr_clustering = config['clustering']['threshold']
+        
+    min_avg_prob = config['confidence']['min_avg_prob']
 
     # Создаём папку для результатов
     out_path = Path(output_dir)
@@ -80,25 +85,31 @@ def predict_entities(df_raw, model, config, threshold=None,
     probabilities = model.predict_proba(X)[:, 1]
 
     all_profiles = profiles_df.index.tolist()
-    clusters = hierarchical_average_clustering(pairs, probabilities, all_profiles, threshold=threshold)
+    clusters = hierarchical_clustering(pairs, probabilities, all_profiles, 
+                                       threshold=thr_clustering)
     logger.info(f"Получено кластеров: {len(clusters)}")
 
     prob_map = {tuple(sorted((a, b))): p for (a, b), p in zip(pairs, probabilities)}
 
-    auto_clusters = []
-    review_clusters_with_meta = []
+    # Сначала вычисляем метрики для всех кластеров
+    all_clusters_with_meta = []
     for cl in clusters:
         is_conf, details = is_confident_cluster(
             cl, prob_map, site_index, profiles_df,
-            min_avg_prob=min_avg_prob,
-            max_pairs_without_sites_ratio=max_no_sites_ratio,
-            max_days_gap=max_days_gap
+            min_avg_prob=min_avg_prob
         )
+        all_clusters_with_meta.append((cl, is_conf, details))
+
+    # Разделяем на авто и сомнительные
+    auto_clusters = []
+    review_clusters_with_meta = []
+    for cl, is_conf, details in all_clusters_with_meta:
         if is_conf:
-            auto_clusters.append(cl)
+            auto_clusters.append((cl, details))
         else:
             review_clusters_with_meta.append((cl, details))
 
+    # Собираем записи для сомнительных кластеров
     review_records = []
     for idx, (cl, details) in enumerate(review_clusters_with_meta):
         cluster_review_id = f"review_{idx}"
@@ -107,18 +118,17 @@ def predict_entities(df_raw, model, config, threshold=None,
             review_records.append({
                 'cluster_id': cluster_review_id,
                 'profile_id': pid,
-                'first_name_clean': row.get('first_name_clean', ''),
-                'last_name_clean': row.get('last_name_clean', ''),
-                'email_domain': ', '.join(row.get('email_domain', [])),
-                'phone_prefix': ', '.join(row.get('phone_prefix', [])),
-                'geoname_id': row.get('geoname_id', ''),
-                'device': ', '.join(row.get('device', [])),
-                'osfamily': ', '.join(row.get('osfamily', [])),
-                'country': row.get('country', ''),
                 'avg_prob_in_cluster': details['avg_prob'],
                 'min_prob_in_cluster': details['min_prob'],
-                'no_sites_ratio': details['no_sites_ratio'],
-                'days_gap': details['days_gap']
+                'size': details['size'],
+                'first_name_clean': row.get('first_name_clean', ''),
+                'last_name_clean': row.get('last_name_clean', ''),
+                'email_domain': safe_join(row.get('email_domain', '')),
+                'phone_prefix': safe_join(row.get('phone_prefix', '')),
+                'geoname_id': row.get('geoname_id', ''),
+                'device': safe_join(row.get('device', '')),
+                'osfamily': safe_join(row.get('osfamily', '')),
+                'country': row.get('country', '')
             })
         logger.debug(f"Кластер размера {len(cl)} отправлен на проверку как {cluster_review_id}")
 
@@ -127,25 +137,56 @@ def predict_entities(df_raw, model, config, threshold=None,
         review_df.to_csv(review_csv, index=False)
         logger.info(f"Неуверенные кластеры сохранены в {review_csv}")
 
-    # Присвоение entity_id
-    cluster_id_map = {}
-    entity_counter = 0
-    for cl in auto_clusters:
-        eid = f"entity_{entity_counter}"
+    # Собираем записи для авто-кластеров
+    auto_records = []
+    for idx, (cl, details) in enumerate(auto_clusters):
         for pid in cl:
-            cluster_id_map[pid] = eid
-        entity_counter += 1
+            row = profiles_df.loc[pid]
+            auto_records.append({
+                'profile_id': pid,
+                'predicted_entity_id': f"entity_{idx}",
+                'avg_prob_in_cluster': details['avg_prob'],
+                'min_prob_in_cluster': details['min_prob'],
+                'size': details['size'],
+                'first_name_clean': row.get('first_name_clean', ''),
+                'last_name_clean': row.get('last_name_clean', ''),
+                'email_domain': safe_join(row.get('email_domain', '')),
+                'phone_prefix': safe_join(row.get('phone_prefix', '')),
+                'geoname_id': row.get('geoname_id', ''),
+                'device': safe_join(row.get('device', '')),
+                'osfamily': safe_join(row.get('osfamily', '')),
+                'country': row.get('country', '')
+                })
+
+    # Добавляем синглтоны (профили не попавшие ни в один кластер)
+    profiles_in_auto = set()
+    for cl, _ in auto_clusters:
+        profiles_in_auto.update(cl)
+    entity_counter = len(auto_clusters)
     for pid in all_profiles:
-        if pid not in cluster_id_map:
-            cluster_id_map[pid] = f"entity_{entity_counter}"
+        if pid not in profiles_in_auto:
+            row = profiles_df.loc[pid]
+            auto_records.append({
+                'profile_id': pid,
+                'predicted_entity_id': f"entity_{entity_counter}",
+                'avg_prob_in_cluster': 0.0,
+                'min_prob_in_cluster': 0.0,
+                'size': 1,
+                'first_name_clean': row.get('first_name_clean', ''),
+                'last_name_clean': row.get('last_name_clean', ''),
+                'email_domain': safe_join(row.get('email_domain', '')),
+                'phone_prefix': safe_join(row.get('phone_prefix', '')),
+                'geoname_id': row.get('geoname_id', ''),
+                'device': safe_join(row.get('device', '')),
+                'osfamily': safe_join(row.get('osfamily', '')),
+                'country': row.get('country', '')
+            })
             entity_counter += 1
 
-    auto_df = pd.DataFrame({
-        "profile_id": list(cluster_id_map.keys()),
-        "predicted_entity_id": list(cluster_id_map.values())
-    })
-    auto_df.to_csv(auto_csv, index=False)
-    logger.info(f"Результат для уверенных сущностей сохранён в {auto_csv}")
+    if auto_records:
+        auto_df = pd.DataFrame(auto_records)
+        auto_df.to_csv(auto_csv, index=False)
+        logger.info(f"Уверенные кластеры и синглтоны сохранены в {auto_csv}")
 
     return auto_df
 
@@ -178,6 +219,8 @@ if __name__ == "__main__":
     config, model = load_model_from_experiment()
     # Используем имя входного файла (без расширения) как базовое
     base_name = Path(input_path).stem
-    predict_entities(data, model, config, threshold=config['clustering']['threshold'],
-                     output_dir="data/inference-results", base_name=base_name)
+    predict_entities(data, model, config, 
+                     thr_clustering=config['clustering']['threshold'],
+                     output_dir="data/inference-results", 
+                     base_name=base_name)
     print("Готово.")

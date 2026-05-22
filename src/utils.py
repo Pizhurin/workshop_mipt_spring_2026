@@ -5,6 +5,7 @@
 
 import math
 import pandas as pd
+import numpy as np
 from typing import Set, Any, Union
 
 
@@ -14,6 +15,22 @@ except NameError:
     def profile(func):
         return func
 
+@profile
+def make_json_serializable(obj):
+    """Рекурсивно преобразует numpy-типы в обычные Python-типы."""
+    if isinstance(obj, (np.integer, np.int64, np.int32)):
+        return int(obj)
+    elif isinstance(obj, (np.floating, np.float64, np.float32)):
+        return float(obj)
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif isinstance(obj, dict):
+        return {k: make_json_serializable(v) for k, v in obj.items()}
+    elif isinstance(obj, (list, tuple)):
+        return [make_json_serializable(i) for i in obj]
+    else:
+        return obj
+        
 @profile
 def frozenset_to_str(val: Any) -> str:
     """
