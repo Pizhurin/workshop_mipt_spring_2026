@@ -1,0 +1,18 @@
+{
+  "recovery_rate": 0.75,
+  "perfect_recovered": 3,
+  "n_true_multi": 4,
+  "partial_clusters": 2,
+  "total_clusters": 5,
+  "true_multi_sizes": {
+    "1": 496,
+    "2": 3,
+    "3": 1
+  },
+  "predicted_cluster_sizes": {
+    "2": 5
+  },
+  "threshold_used": 0.99,
+  "num_pairs_generated": 11149,
+  "num_profiles": 505
+}

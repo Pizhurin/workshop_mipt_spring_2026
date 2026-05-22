@@ -1,0 +1,9 @@
+cluster_id,profile_id,first_name_clean,last_name_clean,email_domain,phone_prefix,geoname_id,device,osfamily,country,avg_prob_in_cluster,min_prob_in_cluster,no_sites_ratio,days_gap
+review_0,09c94df4-b196-3ff8-8c12-a16e2051e2da,,,gmail.com,,702658,smartphone,android,UA,0.9999873280461964,0.9999873280461964,1.0,0
+review_0,d1f5130f-5c40-32bc-b499-54774aa1a0d3,,,gmail.com,,702658,smartphone,android,UA,0.9999873280461964,0.9999873280461964,1.0,0
+review_1,104c86e6-1370-3c98-92bb-fafddc0b238e,анжелика,,rambler.ru,,1486209,smartphone,android,RU,0.9999873280461964,0.9999873280461964,1.0,0
+review_1,85aebbf9-9619-3817-aea7-f0c76830e2df,анжелика,,mail.ru,,1486209,smartphone,android,RU,0.9999873280461964,0.9999873280461964,1.0,0
+review_2,283f0592-be1b-3bbe-9c12-f91fb50edca7,,,gmail.com,,2759794,smartphone,android,NL,0.9953483042214629,0.9953483042214629,1.0,2
+review_2,e8c7e6e1-0678-3b23-b661-9d0087bb6ca4,,,gmail.com,,2759794,smartphone,android,NL,0.9953483042214629,0.9953483042214629,1.0,2
+review_3,65dca38f-e1d0-3603-83d4-d0359252f937,георгий,носков,mail.ru,,524901,smartphone,android,RU,0.99135548457198,0.99135548457198,1.0,1
+review_3,cf514a81-0e8f-3bc9-9901-e30f75f2c24e,георгий,,gmail.com,,524901,smartphone,android,RU,0.99135548457198,0.99135548457198,1.0,1
