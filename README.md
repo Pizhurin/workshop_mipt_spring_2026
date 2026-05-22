@@ -13,7 +13,7 @@
 ```bash
 git clone <url-репозитория>
 cd workshop_mipt_spring_2026
-git checkout data-pipeline-version-2
+git checkout data-pipeline-version-3
 python -m venv venv
 source venv/bin/activate      # Linux/Mac
 # venv\Scripts\activate       # Windows
