@@ -1,0 +1,1281 @@
+Total time: 469.697 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/utils.py
+Function: safe_set at line 42
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    42                                           @profile
+    43                                           def safe_set(val: Any) -> Set:
+    44                                               """
+    45                                               Преобразует frozenset, строку или None в set.
+    46                                               """
+    47  67923048   46858204.9      0.7     10.0      if isinstance(val, frozenset):
+    48 101884572   69870670.1      0.7     14.9          return {
+    49 169805934  147771931.0      0.9     31.5              x for x in val
+    50  33960681   17607363.3      0.5      3.7              if x is not None
+    51  33960681   23087024.2      0.7      4.9              and not (isinstance(x, float) and math.isnan(x))
+    52  33960681   18225608.9      0.5      3.9              and x != ''
+    53                                                   }
+    54                                           
+    55  16980762   10841144.3      0.6      2.3      if isinstance(val, str):
+    56                                                   s = val.strip()
+    57                                                   if not s:
+    58                                                       return set()
+    59                                                   return {part for part in (x.strip() for x in s.split(",")) if part}
+    60                                           
+    61  16980762   13007003.5      0.8      2.8      if isinstance(val, (list, tuple, set)):
+    62  33961524   24601132.3      0.7      5.2          return {
+    63  81269775   47247682.9      0.6     10.1              x for x in val
+    64  15769417    8220211.2      0.5      1.8              if x is not None
+    65  15769417   33323620.5      2.1      7.1              and not (isinstance(x, float) and math.isnan(x))
+    66  15769417    9035013.0      0.6      1.9              and x != ''
+    67                                                   }
+    68                                           
+    69                                               return set()
+
+Total time: 0 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/utils.py
+Function: normalize_bool at line 72
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    72                                           @profile
+    73                                           def normalize_bool(val: Any) -> bool:
+    74                                               """Надёжное преобразование различных представлений True/False."""
+    75                                               if val is None or pd.isna(val):
+    76                                                   return False
+    77                                           
+    78                                               if isinstance(val, bool):
+    79                                                   return val
+    80                                           
+    81                                               return str(val).strip().lower() in {"true", "1", "yes", "y", "t", "да"}
+
+Total time: 245.907 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/utils.py
+Function: jaccard at line 84
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    84                                           @profile
+    85                                           def jaccard(set_a: Set, set_b: Set) -> float:
+    86                                               """
+    87                                               Коэффициент Жаккара для двух множеств.
+    88                                               |A ∪ B| = |A| + |B| – |A ∩ B|
+    89                                               """
+    90  85859730   53682218.6      0.6     21.8      if not set_a and not set_b:
+    91  21918225   12014685.7      0.5      4.9          return 1.
+    92                                           
+    93  63941505   34366873.0      0.5     14.0      if not set_a or not set_b:
+    94  19069087   10277319.7      0.5      4.2          return 0.
+    95                                           
+    96  44872418   32998127.4      0.7     13.4      intersection = set_a & set_b  # создаём пересечение только один раз
+    97  44872418   24100540.7      0.5      9.8      return (
+    98  89744836   50845963.4      0.6     20.7          len(intersection)
+    99  44872418   27620855.9      0.6     11.2          / (len(set_a) + len(set_b) - len(intersection))
+   100                                               )  # вычисление объединения без создания еще одно пересекающегося множества
+
+Total time: 55.9338 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/utils.py
+Function: overlap_size at line 103
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   103                                           @profile
+   104                                           def overlap_size(set_a: Set, set_b: Set) -> int:
+   105                                               """Количество общих элементов."""
+   106  65331184   55933788.6      0.9    100.0      return len(set_a & set_b)
+
+Total time: 20.6393 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/aggregation_profiles.py
+Function: last_non_null at line 17
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    17                                           @profile
+    18                                           def last_non_null(series):
+    19                                               # .dropna() создаёт "тяжелую" копию. МОжно воспользоваться маской. Быстрее
+    20     61927   19877412.6    321.0     96.3      mask = series.notna().to_numpy()  # булев массив, без копирования данных
+    21     61927     706696.6     11.4      3.4      if not mask.any():
+    22     61558      32111.3      0.5      0.2          return None
+    23       369       1399.8      3.8      0.0      idx = mask.nonzero()[0][-1]
+    24       369      21672.9     58.7      0.1      return series.iat[idx]
+
+Total time: 477.322 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/aggregation_profiles.py
+Function: build_profiles_df at line 26
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    26                                           @profile
+    27                                           def build_profiles_df(df_clean):
+    28         1        172.9    172.9      0.0      logger.info("Сборка profiles_df...")
+    29                                           
+    30         1       5837.8   5837.8      0.0      df_sorted = df_clean.sort_values("created_at")
+    31         1        552.1    552.1      0.0      gb = df_sorted.groupby("profile_id")  # один GroupBy, чтобы не пересоздавать
+    32                                           
+    33        19         15.1      0.8      0.0      agg_dict = {
+    34                                                   # Последнее известное значение
+    35         1          0.6      0.6      0.0          "first_name_clean": "last",
+    36         1          0.3      0.3      0.0          "last_name_clean": "last",
+    37         1          0.5      0.5      0.0          "sex": "last",
+    38         1          0.6      0.6      0.0          "geoname_id": "last",
+    39         1          0.4      0.4      0.0          "geoname": "last",
+    40         1          0.5      0.5      0.0          "country": "last",
+    41         1          0.4      0.4      0.0          "subdivision_1_iso_code": "last",
+    42         1          0.4      0.4      0.0          "tz_offset": "last",
+    43                                           
+    44                                                   # Редкие поля: последнее заполненное
+    45         1          0.8      0.8      0.0          "birthday_clean": last_non_null,
+    46                                           
+    47                                                   # Множества. .dropna() всегда МЕГАТЯЖЕЛЫЙ метод. Лучше numpy маска
+    48                                                   # без лишнего копирования
+    49         1          0.9      0.9      0.0          "email_normalized": lambda x: frozenset(x[x.notna()]),
+    50         1          0.5      0.5      0.0          "email_domain": lambda x: frozenset(x[x.notna()]),
+    51         1          0.5      0.5      0.0          "phone_normalized": lambda x: frozenset(x[x.notna()]),
+    52         1          0.5      0.5      0.0          "phone_prefix": lambda x: frozenset(x[x.notna()]),
+    53         1          0.6      0.6      0.0          "device": lambda x: frozenset(x[x.notna()]),
+    54         1          0.8      0.8      0.0          "osfamily": lambda x: frozenset(x[x.notna()]),
+    55         1          0.8      0.8      0.0          "browser": lambda x: frozenset(x[x.notna()]),
+    56                                           
+    57                                                   # Флаги
+    58         1          0.5      0.5      0.0          "is_gmail": "max",
+    59         1          0.4      0.4      0.0          "is_yandex": "max",
+    60         1          0.4      0.4      0.0          "is_man": "max",
+    61         1          0.4      0.4      0.0          "is_woman": "max",
+    62         1          0.4      0.4      0.0          "is_phone": "max",
+    63         1          0.9      0.9      0.0          "was_phone_lead": "max",
+    64         1          0.6      0.6      0.0          "created_at": "max",
+    65                                           
+    66         1          0.6      0.6      0.0          "entity_id": "first",
+    67         1          0.4      0.4      0.0          "entity_type": "first",
+    68                                               }
+    69                                           
+    70         1  477247874.3 4.77e+08    100.0      profiles_df = gb.agg(agg_dict)  # тот же GroupBy
+    71         1       1701.7   1701.7      0.0      profiles_df.rename(columns={"created_at": "last_event_date"}, inplace=True)
+    72                                           
+    73                                               # Счётчики
+    74         1       2302.8   2302.8      0.0      profiles_df["n_events"] = gb.size()  # И хдесь тот же GroupBy
+    75         1      20895.0  20895.0      0.0      profiles_df["n_emails"] = profiles_df["email_normalized"].map(len)  # map быстрее, если нужно обработать всё и сразу
+    76         1      20924.0  20924.0      0.0      profiles_df["n_phones"] = profiles_df["phone_normalized"].map(len)
+    77         1      20966.9  20966.9      0.0      profiles_df["n_devices"] = profiles_df["device"].map(len)
+    78                                           
+    79                                               # Конвертация в булевые значения
+    80         3          2.7      0.9      0.0      for col in ["is_not_russia", "is_million"]:
+    81         2        303.0    151.5      0.0          if col in profiles_df.columns:
+    82                                                       profiles_df[col] = profiles_df[col].apply(normalize_bool)
+    83                                           
+    84         1        327.4    327.4      0.0      logger.info(f"  Профилей: {len(profiles_df):,}")
+    85         1          0.6      0.6      0.0      return profiles_df
+
+Total time: 0.51933 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/site_activity_processor.py
+Function: _safe_int at line 19
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    19                                           @profile
+    20                                           def _safe_int(v):
+    21                                               """Безопасное преобразование site_id в int."""
+    22    235038     147349.6      0.6     28.4      try:
+    23    235038     371980.0      1.6     71.6          return int(float(v))
+    24                                               except (ValueError, TypeError):
+    25                                                   return None
+
+Total time: 140.949 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/site_activity_processor.py
+Function: build_site_index at line 28
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    28                                           @profile
+    29                                           def build_site_index(df_clean):
+    30                                               """
+    31                                               Строит индекс цифрового следа профилей.
+    32                                           
+    33                                               Вход: df_clean после full_preprocessing()
+    34                                               Выход: dict[profile_id] -> dict[category] -> set[int]
+    35                                               """
+    36         1        219.7    219.7      0.0      logger.info("Сборка site_index...")
+    37                                           
+    38         1          1.3      1.3      0.0      site_prefixes = ["has_accept_", "has_account", "has_click_", "has_order_",
+    39                                                                "has_view_", "source_site_", "visited_",]
+    40                                           
+    41         2          1.4      0.7      0.0      site_categories = [
+    42        62        336.3      5.4      0.0          col for col in df_clean.columns
+    43        60        249.6      4.2      0.0          if any(col.startswith(prefix) for prefix in site_prefixes)
+    44                                               ]
+    45                                           
+    46         1        181.5    181.5      0.0      logger.info(f"  Найдено категорий: {len(site_categories)}")
+    47        13          6.1      0.5      0.0      for cat in site_categories:
+    48        12         63.2      5.3      0.0          logger.debug(f"    {cat}")
+    49                                           
+    50                                               # Снова единый объект GroupBy для всех категорий
+    51         1        552.3    552.3      0.0      gb = df_clean.groupby("profile_id")
+    52                                           
+    53                                               # site_index только для профилей, у которых есть хоть какие-то данные
+    54         1      10350.5  10350.5      0.0      all_pids = df_clean["profile_id"].unique()
+    55                                           
+    56                                               # Словарь надо наполнять по мере обработки категорий
+    57                                               # Ключи категорий добавляем позже, чтобы не создавать пустые словари заранее
+    58         1     314077.6 314077.6      0.2      site_index = {pid: {"_all": set()} for pid in all_pids}
+    59                                           
+    60                                               # Заполняем по категориям
+    61        13         28.6      2.2      0.0      for cat in site_categories:
+    62        12        338.6     28.2      0.0          if cat not in df_clean.columns:
+    63                                                       logger.warning(f"  Колонка {cat} не найдена, пропускаем")
+    64                                                       continue
+    65                                                   # Векторизованная обработка группы
+    66                                                   # Быстрая лямбда без dropna и pd.notna
+    67        24  134849903.9 5.62e+06     95.7          grouped = gb[cat].apply(  # Вот и общий GroupBy
+    68        12         25.1      2.1      0.0              lambda x: {
+    69                                                           val for v in x
+    70                                                           if pd.notna(v) and v
+    71                                                           and (val := _safe_int(v)) is not None  # := (walrus operator)
+    72                                                       }
+    73                                                   )
+    74                                           
+    75    743136    3533934.7      4.8      2.5          for pid, sites in grouped.items():
+    76    743124     590852.7      0.8      0.4              if pid not in site_index:
+    77                                                           site_index[pid] = {"_all": set()}
+    78    743124     489142.8      0.7      0.3              site_index[pid][cat] = sites  # множество без None (фильтр _safe_int)
+    79    743124     482371.8      0.6      0.3              site_index[pid]["_all"].update(sites)
+    80                                           
+    81                                               # Добавляем отсутствующие ключи категорий для всех профилей (пустые множества)
+    82     61928      25376.8      0.4      0.0      for pid in site_index:
+    83    805051     321559.2      0.4      0.2          for cat in site_categories:
+    84    743124     329236.0      0.4      0.2              if cat not in site_index[pid]:
+    85                                                           site_index[pid][cat] = set()
+    86                                           
+    87         1        317.8    317.8      0.0      logger.info(f"  Профилей в индексе: {len(site_index)}")
+    88         1        183.6    183.6      0.0      logger.info(f"  Категорий: {len(site_categories)}")
+    89                                           
+    90         1          0.6      0.6      0.0      return site_index
+
+Total time: 115.825 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/cat_activity_processor.py
+Function: build_cat_index at line 17
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    17                                           @profile
+    18                                           def build_cat_index(df_clean):
+    19                                               """
+    20                                               Строит индекс почтовой активности профилей.
+    21                                           
+    22                                               Категории определяются динамически — все колонки,
+    23                                               соответствующие паттернам почтовых признаков.
+    24                                           
+    25                                               Вход: df_clean после full_preprocessing()
+    26                                               Выход: dict[profile_id] -> dict[category] -> set[str]
+    27                                               """
+    28         1        194.9    194.9      0.0      logger.info("Сборка cat_index...")
+    29                                           
+    30                                               # Динамически определяем категории почтовой активности
+    31         1          2.8      2.8      0.0      cat_prefixes = [
+    32                                                   "postman_response_", "postman_action_",
+    33                                                   "postman_campaign_", "postman_scenario_",
+    34                                                   "mm_event_",
+    35                                               ]
+    36                                           
+    37         2          1.8      0.9      0.0      cat_categories = [
+    38        62        389.0      6.3      0.0          col for col in df_clean.columns
+    39        60        223.5      3.7      0.0          if any(col.startswith(prefix) for prefix in cat_prefixes)
+    40                                               ]
+    41                                           
+    42         1        294.0    294.0      0.0      logger.info(f"  Найдено категорий: {len(cat_categories)}")
+    43        11          6.1      0.6      0.0      for cat in cat_categories:
+    44        10         59.2      5.9      0.0          logger.debug(f"    {cat}")
+    45                                           
+    46                                           
+    47         1        923.3    923.3      0.0      gb = df_clean.groupby("profile_id")
+    48                                               # Только с _all, категории потом
+    49         1       9594.1   9594.1      0.0      all_pids = df_clean["profile_id"].unique()
+    50         1     317100.5 317100.5      0.3      cat_index = {pid: {"_all": set()} for pid in all_pids}
+    51                                           
+    52                                               # Заполняем по категориям
+    53        11         21.4      1.9      0.0      for cat in cat_categories:
+    54        20  110819898.7 5.54e+06     95.7          grouped = gb[cat].apply(
+    55        10         21.3      2.1      0.0              lambda x: {
+    56                                                           s.lower()
+    57                                                           for v in x
+    58                                                           if pd.notna(v) and v
+    59                                                           and (s := str(v).strip())
+    60                                                       }
+    61                                                   )
+    62                                           
+    63    619280    2849979.9      4.6      2.5          for pid, values in grouped.items():
+    64    619270     474983.9      0.8      0.4              if pid not in cat_index:  # защита: если pid не в all_pids
+    65                                                           cat_index[pid] = {"_all": set()}
+    66    619270     405023.1      0.7      0.3              cat_index[pid][cat] = values
+    67    619270     379034.9      0.6      0.3              cat_index[pid]["_all"].update(values)
+    68                                           
+    69                                               # Добавляем отсутствующие ключи категорий для всех профилей
+    70     61928      24551.3      0.4      0.0      for pid in cat_index:
+    71    681197     273319.6      0.4      0.2          for cat in cat_categories:
+    72    619270     269122.2      0.4      0.2              if cat not in cat_index[pid]:
+    73                                                           cat_index[pid][cat] = set()
+    74                                           
+    75         1        317.3    317.3      0.0      logger.info(f"  Профилей в индексе: {len(cat_index)}")
+    76                                           
+    77         1          0.6      0.6      0.0      return cat_index
+
+Total time: 0.309427 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/profiles_processor.py
+Function: add_train_val_test_split at line 28
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    28                                           @profile
+    29                                           def add_train_val_test_split(profiles_df):
+    30                                               """
+    31                                               Добавляет колонку 'split' с разбиением 60/20/20 на уровне entity_id.
+    32                                               Тип entity_type вычисляется автоматически (multi_profile, если >1 профиля).
+    33                                               """
+    34                                               # Вычисляем entity_type по количеству профилей в entity_id
+    35         1      27464.8  27464.8      8.9      entity_counts = profiles_df.groupby("entity_id").size()
+    36         2      34287.8  17143.9     11.1      entity_type_computed = entity_counts.apply(
+    37         1          1.4      1.4      0.0          lambda x: "multi_profile" if x > 1 else "single_profile"
+    38                                               )
+    39                                           
+    40         1       2535.4   2535.4      0.8      entity_info = entity_type_computed.reset_index()
+    41         1        343.0    343.0      0.1      entity_info.columns = ["entity_id", "entity_type"]
+    42                                           
+    43                                               # Преобразуем в списки
+    44         1       5380.4   5380.4      1.7      entity_ids = entity_info["entity_id"].astype(str).tolist()
+    45         1       5251.0   5251.0      1.7      entity_types = entity_info["entity_type"].astype(str).tolist()
+    46                                           
+    47                                               # Отделяем test (20%)
+    48         2      53979.3  26989.6     17.4      train_val_ids, test_ids, train_val_types, test_types = train_test_split(
+    49         1          0.8      0.8      0.0          entity_ids,
+    50         1          0.4      0.4      0.0          entity_types,
+    51         1          1.1      1.1      0.0          test_size=0.2,
+    52         1          0.7      0.7      0.0          stratify=entity_types,
+    53         1          1.2      1.2      0.0          random_state=CONFIG['seed'],
+    54                                               )
+    55                                           
+    56                                               # Отделяем val (20% от исходного = 25% от train_val)
+    57         2      30677.5  15338.7      9.9      train_ids, val_ids = train_test_split(
+    58         1          0.7      0.7      0.0          train_val_ids,
+    59         1          1.0      1.0      0.0          test_size=0.25,
+    60         1          0.7      0.7      0.0          stratify=train_val_types,
+    61         1          1.0      1.0      0.0          random_state=CONFIG['seed'],
+    62                                               )
+    63                                           
+    64                                               # Маппинг entity_id -> split
+    65         1          1.0      1.0      0.0      entity_to_split = {}
+    66     32022      14041.2      0.4      4.5      for eid in train_ids:
+    67     32021      16863.2      0.5      5.4          entity_to_split[eid] = "train"
+    68     10675       4892.2      0.5      1.6      for eid in val_ids:
+    69     10674       6180.8      0.6      2.0          entity_to_split[eid] = "val"
+    70     10675       4703.7      0.4      1.5      for eid in test_ids:
+    71     10674       6375.1      0.6      2.1          entity_to_split[eid] = "test"
+    72                                           
+    73         1      46005.5  46005.5     14.9      profiles_df["split"] = profiles_df["entity_id"].map(entity_to_split)
+    74                                           
+    75         1        235.7    235.7      0.1      logger.info("Разбиение добавлено:")
+    76         4          4.3      1.1      0.0      for split_name in ["train", "val", "test"]:
+    77         3       4122.2   1374.1      1.3          n = profiles_df["split"].eq(split_name).sum()
+    78         9      32569.7   3618.9     10.5          n_mp = profiles_df[
+    79         6       4313.0    718.8      1.4              (profiles_df["split"] == split_name)
+    80         3       5608.0   1869.3      1.8              & (profiles_df["entity_type"] == "multi_profile")
+    81         3       2782.4    927.5      0.9          ].shape[0]
+    82         3        800.8    266.9      0.3          logger.info(f"  {split_name}: {n:,} профилей (multi: {n_mp:,})")
+    83                                           
+    84         1          0.5      0.5      0.0      return profiles_df
+
+Total time: 76.6627 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/profiles_processor.py
+Function: add_temporal_features at line 86
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    86                                           @profile
+    87                                           def add_temporal_features(profiles_df, df_clean):
+    88                                               """Добавляет временные признаки в profiles_df из сырых событий."""
+    89                                               # first_event_time, last_event_time
+    90         1        664.6    664.6      0.0      gb = df_clean.groupby("profile_id")
+    91                                           
+    92                                               # Одна агрегация вместо раздельных вызовов agg и apply
+    93         2   76619246.3 3.83e+07     99.9      time_agg = gb.agg(
+    94         1          1.5      1.5      0.0          first_event_time=("created_at", "min"),
+    95         1          0.7      0.7      0.0          last_event_time=("created_at", "max"),
+    96         1          1.6      1.6      0.0          active_days=("day", lambda x: set(x[x.notna()])),  # dropna() оч тяжелая
+    97         1          0.5      0.5      0.0          active_hours=("local_hour", lambda x: set(x[x.notna()]))
+    98                                               )
+    99                                           
+   100                                               # Присоединяем к profiles_df
+   101         1      42086.3  42086.3      0.1      profiles_df = profiles_df.join(time_agg)
+   102                                           
+   103                                               # Для features.py нужна last_event_date
+   104         1        732.0    732.0      0.0      profiles_df["last_event_date"] = profiles_df["last_event_time"]
+   105                                           
+   106         1          0.6      0.6      0.0      return profiles_df
+
+Total time: 826.605 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/profiles_processor.py
+Function: process_profiles at line 108
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   108                                           @profile
+   109                                           def process_profiles(df_raw, split_data=False):
+   110                                               """
+   111                                               Полный цикл обработки.
+   112                                           
+   113                                               Вход:
+   114                                                   df_raw — сырой датафрейм
+   115                                                   split_data — если True, добавляет колонку 'split' (train/val/test)
+   116                                                                если False, работает без разбиения (для production)
+   117                                           
+   118                                               Выход:
+   119                                                   profiles_df, site_index, cat_index
+   120                                               """
+   121         1        262.9    262.9      0.0      logger.info("=" * 50)
+   122         1        190.5    190.5      0.0      logger.info("Запуск process_profiles()")
+   123         1        247.2    247.2      0.0      logger.info("=" * 50)
+   124                                           
+   125                                               # Определяем, есть ли ground truth
+   126         1       1198.7   1198.7      0.0      has_entity = 'entity_id' in df_raw.columns
+   127         1          0.6      0.6      0.0      if not has_entity:
+   128                                                   # Добавляем фиктивные колонки для прохождения preprocessing
+   129                                                   df_raw = df_raw.assign(  # единый assign вместо .copy() + 2 присваивания
+   130                                                       entity_id=df_raw['profile_id'],
+   131                                                       entity_type='single_profile'
+   132                                                   )
+   133                                                   split_data = False  # отключаем разбиение, так как нет истинных сущностей
+   134                                                   logger.info("Входные данные не содержат entity_id. Добавлены фиктивные колонки для обработки.")
+   135                                           
+   136                                               # Этап 1: Предобработка
+   137         1        372.2    372.2      0.0      logger.info("Этап 1/5: Предобработка...")
+   138         1   14691168.9 1.47e+07      1.8      df_clean = full_preprocessing(df_raw)
+   139                                           
+   140                                               # Этап 2: Паспорт профиля
+   141         1        165.7    165.7      0.0      logger.info("Этап 2/5: Построение паспорта профилей...")
+   142         1  477322102.7 4.77e+08     57.7      profiles_df = build_profiles_df(df_clean)
+   143                                           
+   144                                               # Этап 3: Индекс сайтов (цифровой след)
+   145         1        201.7    201.7      0.0      logger.info("Этап 3/5: Построение индекса сайтов...")
+   146         1  141402373.8 1.41e+08     17.1      site_index = build_site_index(df_clean)
+   147                                           
+   148                                               # Этап 4: Индекс почтовой активности
+   149         1        217.5    217.5      0.0      logger.info("Этап 4/5: Построение индекса почтовой активности...")
+   150         1  116194337.7 1.16e+08     14.1      cat_index = build_cat_index(df_clean)
+   151                                           
+   152                                               # Этап 5: Добавление временных признаков
+   153         1        238.3    238.3      0.0      logger.info("Этап 5/5 Добавление временных признаков...")
+   154         1   76664203.2 7.67e+07      9.3      profiles_df = add_temporal_features(profiles_df, df_clean)
+   155                                           
+   156                                               # Опционально: добавляем разбиение
+   157         1          0.9      0.9      0.0      if split_data:
+   158         1        280.5    280.5      0.0          logger.info("Добавление разбиения train/val/test...")
+   159         1     327099.5 327099.5      0.0          profiles_df = add_train_val_test_split(profiles_df)
+   160                                           
+   161         1        326.9    326.9      0.0      logger.info("=" * 50)
+   162         2        180.3     90.2      0.0      logger.info(
+   163         2         39.6     19.8      0.0          f"Готово: {len(profiles_df):,} профилей, "
+   164         1          2.4      2.4      0.0          f"{len(site_index):,} сайтовых индексов, "
+   165         1          1.5      1.5      0.0          f"{len(cat_index):,} категориальных индексов"
+   166                                               )
+   167         1        175.1    175.1      0.0      logger.info("=" * 50)
+   168                                           
+   169                                               # После построения profiles_df удаляем фиктивные колонки, если их не было
+   170         1          1.5      1.5      0.0      if not has_entity:
+   171                                                   profiles_df = profiles_df.drop(columns=['entity_id', 'entity_type'], errors='ignore')
+   172                                                   logger.info("Фиктивные колонки entity_id/entity_type удалены из результата.")
+   173                                           
+   174         1          0.9      0.9      0.0      return profiles_df, site_index, cat_index
+
+Total time: 5.64466 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/blocking.py
+Function: make_pairs at line 24
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    24                                           @profile
+    25                                           def make_pairs(indices: List, max_group_size: int = CONFIG['blocking']['max_group_size']) -> List[Tuple]:
+    26                                               """Генерирует пары с защитой от слишком больших групп."""
+    27     12828       7398.2      0.6      0.1      if len(indices) < 2:
+    28                                                   return []
+    29     12828       5818.1      0.5      0.1      if len(indices) > max_group_size:
+    30        36      11865.0    329.6      0.2          logger.warning(f"Группа слишком большая ({len(indices):,}) -> ограничиваем до {max_group_size}")
+    31        36        815.7     22.7      0.0          indices = indices[:max_group_size]
+    32     12828    5618763.1    438.0     99.5      return list(itertools.combinations(indices, 2))
+
+Total time: 150.525 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/blocking.py
+Function: blocking_pipeline at line 34
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    34                                           @profile
+    35                                           def blocking_pipeline(profiles_df: pd.DataFrame,
+    36                                                                site_index: dict,
+    37                                                                max_group_size: int = CONFIG['blocking']['max_group_size']) -> List[Tuple]:
+    38                                               """Основной пайплайн блокинга."""
+    39         3       1004.4    334.8      0.0      logger.info("=" * 70)
+    40         3        564.6    188.2      0.0      logger.info("Запуск многопроходного блокинга")
+    41         3        538.6    179.5      0.0      logger.info("=" * 70)
+    42                                           
+    43         3          4.5      1.5      0.0      all_pairs = []
+    44                                           
+    45         3          2.0      0.7      0.0      passes = [
+    46         3          7.8      2.6      0.0          ("Sites", lambda: blocking_by_sites(profiles_df, site_index, max_group_size)),
+    47         3          3.7      1.2      0.0          ("Geo + Device", lambda: blocking_by_geo_device(profiles_df, max_group_size)),
+    48         3          3.4      1.1      0.0          ("Name + Geo", lambda: blocking_by_name_geo(profiles_df, max_group_size)),
+    49         3          3.5      1.2      0.0          ("Sex + Geo", lambda: blocking_by_sex_geo(profiles_df, max_group_size)),
+    50         3          4.0      1.3      0.0          ("TZ + Geo", lambda: blocking_by_tz_geo(profiles_df, max_group_size)),
+    51         3          3.2      1.1      0.0          ("Device + TZ + Geo", lambda: blocking_by_device_tz_geo(profiles_df, max_group_size)),
+    52                                               ]
+    53                                           
+    54        21         79.5      3.8      0.0      for name, func in passes:
+    55        18       5461.6    303.4      0.0          logger.info(f"Pass: {name}...")
+    56        18  111559102.3  6.2e+06     74.1          pairs = func()
+    57        18       6544.8    363.6      0.0          logger.info(f"  -> {len(pairs):,} пар")
+    58        18    1743778.8  96876.6      1.2          all_pairs.extend(pairs)
+    59                                           
+    60         3   37205365.5 1.24e+07     24.7      candidate_pairs = list(set(tuple(sorted(p)) for p in all_pairs))
+    61                                           
+    62         3        899.8    299.9      0.0      logger.info("=" * 70)
+    63         3        591.1    197.0      0.0      logger.info(f"Блокинг завершен: {len(candidate_pairs):,} уникальных пар-кандидатов")
+    64         3        610.5    203.5      0.0      logger.info("=" * 70)
+    65                                           
+    66         3          1.6      0.5      0.0      return candidate_pairs
+
+Total time: 28.4036 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/blocking.py
+Function: blocking_by_sites at line 70
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    70                                           @profile
+    71                                           def blocking_by_sites(profiles_df, site_index, max_group_size=CONFIG['blocking']['max_group_size']):
+    72         3         16.0      5.3      0.0      site_to_profiles = defaultdict(list)
+    73     61930      34194.8      0.6      0.1      for pid, categories in site_index.items():
+    74    212682     117866.0      0.6      0.4          for site_id in categories.get("_all", set()):
+    75    150755      76337.5      0.5      0.3              site_to_profiles[site_id].append(pid)
+    76                                           
+    77         3          4.0      1.3      0.0      pairs = []
+    78      2864       1928.2      0.7      0.0      for plist in site_to_profiles.values():
+    79      2861       1987.5      0.7      0.0          if len(plist) >= 2:
+    80      2227    4030328.2   1809.8     14.2              pairs.extend(make_pairs(plist, max_group_size))
+    81         3   24140944.6 8.05e+06     85.0      return list(set(tuple(sorted(p)) for p in pairs))
+
+Total time: 13.3904 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/blocking.py
+Function: blocking_by_geo_device at line 83
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    83                                           @profile
+    84                                           def blocking_by_geo_device(profiles_df, max_group_size=CONFIG['blocking']['max_group_size']):
+    85         3          2.1      0.7      0.0      mask = (
+    86         9       5647.3    627.5      0.0          profiles_df["geoname_id"].notna() &
+    87         3      10469.5   3489.8      0.1          profiles_df["osfamily"].notna() &
+    88         3       7067.1   2355.7      0.1          profiles_df["device"].notna()
+    89                                               )
+    90         3     118114.6  39371.5      0.9      df = profiles_df[mask].copy()
+    91                                           
+    92         3       2953.0    984.3      0.0      df["_key"] = (
+    93        12      17230.7   1435.9      0.1          df["geoname_id"].astype(str) + "|" +
+    94         6     556189.0  92698.2      4.2          df["osfamily"].apply(frozenset_to_str) + "|" +
+    95         3     564786.7 188262.2      4.2          df["device"].apply(frozenset_to_str)
+    96                                               )
+    97                                           
+    98         3    8205270.1 2.74e+06     61.3      grouped = df.groupby("_key").apply(lambda x: list(x.index))
+    99                                           
+   100         3          2.7      0.9      0.0      pairs = []
+   101      5866       3776.0      0.6      0.0      for plist in grouped:
+   102      5863       2992.4      0.5      0.0          if len(plist) >= 2:
+   103      3055     458094.1    149.9      3.4              pairs.extend(make_pairs(plist, max_group_size))
+   104                                           
+   105         3       3260.2   1086.7      0.0      logger.info(f"  Ключей: {len(grouped):,}, групп ≥2: {sum(1 for x in grouped if len(x) >= 2):,}")
+   106         3    3434556.1 1.14e+06     25.6      return list(set(tuple(sorted(p)) for p in pairs))
+
+Total time: 7.23269 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/blocking.py
+Function: blocking_by_name_geo at line 108
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   108                                           @profile
+   109                                           def blocking_by_name_geo(profiles_df, max_group_size=CONFIG['blocking']['max_group_size']):
+   110         3       7019.6   2339.9      0.1      mask = profiles_df["first_name_clean"].notna() & profiles_df["geoname_id"].notna()
+   111         3      50262.1  16754.0      0.7      df = profiles_df[mask].copy()
+   112                                           
+   113         3      11774.1   3924.7      0.2      df["_key"] = df["first_name_clean"].astype(str) + "|" + df["geoname_id"].astype(str)
+   114                                           
+   115         3       2699.6    899.9      0.0      has_last = df["last_name_clean"].notna()
+   116         3       7712.6   2570.9      0.1      df.loc[has_last, "_key"] = (
+   117        12      16368.1   1364.0      0.2          df.loc[has_last, "first_name_clean"].astype(str) + "|" +
+   118         6       6163.6   1027.3      0.1          df.loc[has_last, "last_name_clean"].astype(str) + "|" +
+   119         3       6438.1   2146.0      0.1          df.loc[has_last, "geoname_id"].astype(str)
+   120                                               )
+   121                                           
+   122         3    7079897.7 2.36e+06     97.9      grouped = df.groupby("_key").apply(lambda x: list(x.index))
+   123                                           
+   124         3          2.1      0.7      0.0      pairs = []
+   125      8475       4367.6      0.5      0.1      for plist in grouped:
+   126      8472       3623.0      0.4      0.1          if len(plist) >= 2:
+   127      2106      16391.8      7.8      0.2              pairs.extend(make_pairs(plist, max_group_size))
+   128                                           
+   129         3       3047.1   1015.7      0.0      logger.info(f"  Ключей: {len(grouped):,}, групп ≥2: {sum(1 for x in grouped if len(x) >= 2):,}")
+   130         3      16925.1   5641.7      0.2      return list(set(tuple(sorted(p)) for p in pairs))
+
+Total time: 14.6155 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/blocking.py
+Function: blocking_by_sex_geo at line 132
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   132                                           @profile
+   133                                           def blocking_by_sex_geo(profiles_df, max_group_size=CONFIG['blocking']['max_group_size']):
+   134         3         15.0      5.0      0.0      key_to_profiles = defaultdict(list)
+   135     61930   11212760.2    181.1     76.7      for pid, row in profiles_df.iterrows():
+   136     61927    1583744.6     25.6     10.8          sex = row.get('sex')
+   137     61927    1120600.5     18.1      7.7          geo = row.get('geoname_id')
+   138     61927     380058.2      6.1      2.6          if pd.isna(sex) or pd.isna(geo) or sex == 'unknown':
+   139     47967      21208.7      0.4      0.1              continue
+   140     13960      23646.6      1.7      0.2          key_to_profiles[f"{sex}|{geo}"].append(pid)
+   141                                           
+   142         3          6.2      2.1      0.0      pairs = []
+   143      2373       1033.1      0.4      0.0      for plist in key_to_profiles.values():
+   144      2370       1059.8      0.4      0.0          if len(plist) >= 2:
+   145      1156      28657.0     24.8      0.2              pairs.extend(make_pairs(plist, max_group_size))
+   146                                           
+   147         3       1510.8    503.6      0.0      logger.info(f"  Ключей: {len(key_to_profiles):,}, групп ≥2: {sum(1 for v in key_to_profiles.values() if len(v) >= 2):,}")
+   148         3     241232.4  80410.8      1.7      return list(set(tuple(sorted(p)) for p in pairs))
+
+Total time: 21.2886 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/blocking.py
+Function: blocking_by_tz_geo at line 150
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   150                                           @profile
+   151                                           def blocking_by_tz_geo(profiles_df, max_group_size=CONFIG['blocking']['max_group_size']):
+   152         3         13.1      4.4      0.0      key_to_profiles = defaultdict(list)
+   153     61930   11448465.1    184.9     53.8      for pid, row in profiles_df.iterrows():
+   154     61927    1618419.6     26.1      7.6          tz = row.get('tz_offset')
+   155     61927    1132626.1     18.3      5.3          geo = row.get('geoname_id')
+   156     61927     365714.0      5.9      1.7          if pd.isna(tz) or pd.isna(geo):
+   157     12757       6458.3      0.5      0.0              continue
+   158     49170     156793.1      3.2      0.7          key_to_profiles[f"{tz}|{geo}"].append(pid)
+   159                                           
+   160         3         21.8      7.3      0.0      pairs = []
+   161      3167       1485.7      0.5      0.0      for plist in key_to_profiles.values():
+   162      3164       1549.9      0.5      0.0          if len(plist) >= 2:
+   163      1847     769897.2    416.8      3.6              pairs.extend(make_pairs(plist, max_group_size))
+   164                                           
+   165         3       1769.1    589.7      0.0      logger.info(f"  Ключей: {len(key_to_profiles):,}, групп ≥2: {sum(1 for v in key_to_profiles.values() if len(v) >= 2):,}")
+   166         3    5785356.1 1.93e+06     27.2      return list(set(tuple(sorted(p)) for p in pairs))
+
+Total time: 24.1126 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/blocking.py
+Function: blocking_by_device_tz_geo at line 168
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   168                                           @profile
+   169                                           def blocking_by_device_tz_geo(profiles_df, max_group_size=CONFIG['blocking']['max_group_size']):
+   170         3         14.6      4.9      0.0      key_to_profiles = defaultdict(list)
+   171     61930   11985290.7    193.5     49.7      for pid, row in profiles_df.iterrows():
+   172     61927    1645803.4     26.6      6.8          device = row.get('device')
+   173     61927    1134521.8     18.3      4.7          tz = row.get('tz_offset')
+   174     61927    1096047.7     17.7      4.5          geo = row.get('geoname_id')
+   175     61927    1480665.9     23.9      6.1          if pd.isna(device) or pd.isna(tz) or pd.isna(geo):
+   176     12757       6908.1      0.5      0.0              continue
+   177     49170     955126.3     19.4      4.0          key = f"{frozenset_to_str(device)}|{tz}|{geo}"
+   178     49170      62606.4      1.3      0.3          key_to_profiles[key].append(pid)
+   179                                           
+   180         3          5.1      1.7      0.0      pairs = []
+   181      4378       2014.0      0.5      0.0      for plist in key_to_profiles.values():
+   182      4375       2131.6      0.5      0.0          if len(plist) >= 2:
+   183      2437     939165.8    385.4      3.9              pairs.extend(make_pairs(plist, max_group_size))
+   184                                           
+   185         3       2190.6    730.2      0.0      logger.info(f"  Ключей: {len(key_to_profiles):,}, групп ≥2: {sum(1 for v in key_to_profiles.values() if len(v) >= 2):,}")
+   186         3    4800137.0  1.6e+06     19.9      return list(set(tuple(sorted(p)) for p in pairs))
+
+Total time: 0.850366 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/features.py
+Function: compute_idf_sites at line 28
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    28                                           @profile
+    29                                           def compute_idf_sites(site_index: Dict, num_profiles: int) -> Dict:
+    30         1        259.1    259.1      0.0      logger.info("Вычисление IDF для site_id...")
+    31         1          2.5      2.5      0.0      doc_count = defaultdict(int)
+    32     61928      24522.5      0.4      2.9      for categories in site_index.values():
+    33    212682     116643.3      0.5     13.7          for site_id in categories.get("_all", set()):
+    34    150755     620236.2      4.1     72.9              if pd.notna(site_id):
+    35    150755      87796.2      0.6     10.3                  doc_count[site_id] += 1
+    36         1        605.9    605.9      0.1      idf = {k: np.log(num_profiles / v) if v > 0 else 0.0 for k, v in doc_count.items()}
+    37         1        299.8    299.8      0.0      logger.info(f"IDF site_id: {len(idf):,}")
+    38         1          0.7      0.7      0.0      return idf
+
+Total time: 0.259094 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/features.py
+Function: compute_idf_email_domains at line 41
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    41                                           @profile
+    42                                           def compute_idf_email_domains(profiles_df: pd.DataFrame) -> Dict:
+    43         1        234.9    234.9      0.1      logger.info("Вычисление IDF для email доменов...")
+    44         1          9.4      9.4      0.0      num_profiles = len(profiles_df)
+    45         1          2.7      2.7      0.0      doc_count = defaultdict(int)
+    46     37124      22288.4      0.6      8.6      for domains in profiles_df["email_domain"]:
+    47     37123      17198.5      0.5      6.6          if isinstance(domains, frozenset):
+    48     74246      35771.0      0.5     13.8              for d in domains:
+    49     37123     161146.9      4.3     62.2                  if d and pd.notna(d):
+    50     37123      21892.6      0.6      8.4                      doc_count[d] += 1
+    51         1        246.3    246.3      0.1      idf = {k: np.log(num_profiles / v) if v > 0 else 0.0 for k, v in doc_count.items()}
+    52         1        302.5    302.5      0.1      logger.info(f"IDF domains: {len(idf):,}")
+    53         1          0.7      0.7      0.0      return idf
+
+Total time: 61.8387 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/features.py
+Function: _normalized_levenshtein at line 57
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    57                                           @profile
+    58                                           def _normalized_levenshtein(str_a: str, str_b: str) -> float:
+    59   8490381   48105947.9      5.7     77.8      from Levenshtein import distance as lev_distance
+    60   8490381    5089905.8      0.6      8.2      if not str_a and not str_b: return 0.0
+    61   4517998    2631701.7      0.6      4.3      if not str_a or not str_b: return 1.0
+    62    955920    6011137.7      6.3      9.7      return lev_distance(str_a, str_b) / max(len(str_a), len(str_b))
+
+Total time: 156.891 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/features.py
+Function: _char_jaccard at line 64
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    64                                           @profile
+    65                                           def _char_jaccard(str_a: str, str_b: str, ngram: int = 2) -> float:
+    66  16980762   10938562.9      0.6      7.0      if not str_a and not str_b: return 1.0
+    67  13008379    7713398.4      0.6      4.9      if not str_a or not str_b: return 0.0
+    68   9446301    7208690.6      0.8      4.6      def ngrams(s, n):
+    69                                                   return {s[i:i+n] for i in range(len(s) - n + 1)}
+    70   9446301  131030519.8     13.9     83.5      return jaccard(ngrams(str_a.lower(), ngram), ngrams(str_b.lower(), ngram))
+
+Total time: 48.6569 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/features.py
+Function: time_overlap_ratio at line 72
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    72                                           @profile
+    73                                           def time_overlap_ratio(set1, set2):
+    74   8490381    5459151.9      0.6     11.2      if not set1 or not set2: return 0.0
+    75   5898517   43197727.3      7.3     88.8      return overlap_size(set1, set2) / len(set1 | set2)
+
+Total time: 3.17407 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/features.py
+Function: add_conflict_features at line 77
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    77                                           @profile
+    78                                           def add_conflict_features(features, rows1, rows2):
+    79        23      36578.6   1590.4      1.2      features['country_conflict'] = (
+    80        69     296456.8   4296.5      9.3            (rows1['country'].fillna('') != '')
+    81        23     270915.9  11779.0      8.5          & (rows2['country'].fillna('') != '')
+    82        23     177444.4   7715.0      5.6          & (rows1['country'] != rows2['country'])
+    83        23      34658.0   1506.9      1.1      ).astype(int)
+    84                                           
+    85        23      36229.4   1575.2      1.1      features['tz_far_apart'] = (
+    86        23     202340.9   8797.4      6.4          np.abs(rows1['tz_offset'].fillna(0) - rows2['tz_offset'].fillna(0)) > 4
+    87        23      11721.3    509.6      0.4      ).astype(int)
+    88                                           
+    89                                               # Векторизованная проверка непустоты device / замена apply(frozenset_to_str)
+    90        23         16.3      0.7      0.0      dev1_nonempty, dev2_nonempty = (
+    91        23     345857.9  15037.3     10.9          rows1['device'].astype(bool),
+    92        23     343647.7  14941.2     10.8          rows2['device'].astype(bool)
+    93                                               )
+    94                                           
+    95        23      38329.1   1666.5      1.2      features['device_os_conflict'] = (
+    96        69      22113.7    320.5      0.7            dev1_nonempty
+    97        23         10.8      0.5      0.0          & dev2_nonempty
+    98        23    1343582.5  58416.6     42.3          & (rows1['osfamily'] != rows2['osfamily'])  # прямое сравнение
+    99        23      14151.5    615.3      0.4      ).astype(int)
+   100        23         16.8      0.7      0.0      return features
+
+Total time: 2981.84 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/features.py
+Function: build_features at line 104
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   104                                           @profile
+   105                                           def build_features(
+   106                                               pairs: List[Tuple],
+   107                                               profiles_df: pd.DataFrame,
+   108                                               site_index: Dict,
+   109                                               cat_index: Dict,
+   110                                               idf_sites: Dict,
+   111                                               idf_domains: Dict,
+   112                                               batch_size: int = 400_000,
+   113                                               training: bool = True,
+   114                                           ) -> Tuple[pd.DataFrame, Optional[np.ndarray]]:
+   115                                           
+   116         3        871.9    290.6      0.0      logger.info(f"Генерация признаков для {len(pairs):,} пар...")
+   117         3         66.3     22.1      0.0      if training and 'entity_id' in profiles_df.columns:
+   118         3    2642189.1 880729.7      0.1          entity_id_map = profiles_df["entity_id"].to_dict()
+   119                                               else:
+   120                                                   entity_id_map = None
+   121                                           
+   122         3          4.2      1.4      0.0      X_batches, y_batches = [], []
+   123                                           
+   124        26         58.1      2.2      0.0      for start in range(0, len(pairs), batch_size):
+   125        23        115.8      5.0      0.0          end = min(start + batch_size, len(pairs))
+   126        23     123778.5   5381.7      0.0          batch_pairs = pairs[start:end]
+   127                                           
+   128        23     371568.5  16155.2      0.0          idx1 = [p[0] for p in batch_pairs]
+   129        23     349399.6  15191.3      0.0          idx2 = [p[1] for p in batch_pairs]
+   130                                           
+   131        23   10522128.7 457483.9      0.4          rows1 = profiles_df.loc[idx1].reset_index(drop=True)
+   132        23   10315338.1 448493.0      0.3          rows2 = profiles_df.loc[idx2].reset_index(drop=True)
+   133                                           
+   134        23      11883.0    516.7      0.0          features = pd.DataFrame(index=range(len(batch_pairs)))
+   135                                           
+   136                                                   # Имена
+   137        23     223527.0   9718.6      0.0          fname1 = rows1["first_name_clean"].fillna("").astype(str)
+   138        23     227113.4   9874.5      0.0          fname2 = rows2["first_name_clean"].fillna("").astype(str)
+   139        23     181638.4   7897.3      0.0          lname1 = rows1["last_name_clean"].fillna("").astype(str)
+   140        23     190222.9   8270.6      0.0          lname2 = rows2["last_name_clean"].fillna("").astype(str)
+   141                                           
+   142        46     704266.5  15310.1      0.0          features["fname_lev"] = [
+   143        46  205195548.1 4.46e+06      6.9              _normalized_levenshtein(a, b) for a, b in zip(fname1, fname2)
+   144                                                   ]
+   145        46     718027.0  15609.3      0.0          features["fname_jaccard"] = [
+   146        46  167385879.9 3.64e+06      5.6              _char_jaccard(a, b) for a, b in zip(fname1, fname2)
+   147                                                   ]
+   148        46     704283.1  15310.5      0.0          features["full_name_jaccard"] = [
+   149   8490381  190239625.8     22.4      6.4              _char_jaccard(a + " " + b, c + " " + d)
+   150   8490427  182554835.7     21.5      6.1              for a, b, c, d in zip(fname1, lname1, fname2, lname2)
+   151                                                   ]
+   152                                           
+   153                                                   # Phone
+   154        23   95473722.2 4.15e+06      3.2          pref1 = rows1["phone_prefix"].apply(safe_set)
+   155        23   89197629.8 3.88e+06      3.0          pref2 = rows2["phone_prefix"].apply(safe_set)
+   156        46     697791.8  15169.4      0.0          features["phone_prefix_jaccard"] = [
+   157        46   60765513.8 1.32e+06      2.0              jaccard(a, b) for a, b in zip(pref1, pref2)
+   158                                                   ]
+   159        46    2196028.5  47739.7      0.1          features["phone_prefix_overlap"] = [
+   160        46   55414179.8  1.2e+06      1.9              overlap_size(a, b) for a, b in zip(pref1, pref2)
+   161                                                   ]
+   162                                           
+   163                                                   # Geo & TZ
+   164        23      34220.0   1487.8      0.0          features["geo_match"] = (
+   165        23     176875.5   7690.2      0.0              rows1["geoname_id"] == rows2["geoname_id"]
+   166        23      14096.1    612.9      0.0          ).astype(int)
+   167        46      44154.5    959.9      0.0          features["tz_diff"] = np.abs(
+   168        23     100338.1   4362.5      0.0              rows1["tz_offset"].fillna(0) - rows2["tz_offset"].fillna(0)
+   169                                                   )
+   170                                           
+   171                                                   # Устройства: преобразуем один раз, используем для всех признаков
+   172        23  118676920.0 5.16e+06      4.0          dev1 = rows1["device"].apply(safe_set)
+   173        23  123086271.7 5.35e+06      4.1          dev2 = rows2["device"].apply(safe_set)
+   174        23  119355713.5 5.19e+06      4.0          os1 = rows1["osfamily"].apply(safe_set)
+   175        23  119092125.6 5.18e+06      4.0          os2 = rows2["osfamily"].apply(safe_set)
+   176                                           
+   177        23   90982064.9 3.96e+06      3.1          features["device_jaccard"] = [jaccard(a, b) for a, b in zip(dev1, dev2)]
+   178        23   90486298.0 3.93e+06      3.0          features["osfamily_jaccard"] = [jaccard(a, b) for a, b in zip(os1, os2)]
+   179                                           
+   180                                                   # Сайты
+   181        23    3405717.8 148074.7      0.1          site_all1 = [site_index.get(pid, {}).get("_all", set()) for pid in idx1]
+   182        23    3446187.6 149834.2      0.1          site_all2 = [site_index.get(pid, {}).get("_all", set()) for pid in idx2]
+   183        46     885074.5  19240.8      0.0          features["sites_jaccard"] = [
+   184        46   89619440.9 1.95e+06      3.0              jaccard(a, b) for a, b in zip(site_all1, site_all2)
+   185                                                   ]
+   186        46    2220161.4  48264.4      0.1          features["sites_overlap"] = [
+   187        46   56292776.6 1.22e+06      1.9              overlap_size(a, b) for a, b in zip(site_all1, site_all2)
+   188                                                   ]
+   189                                           
+   190        23         59.7      2.6      0.0          site_cats = [
+   191                                                       "has_order_365", "has_account", "has_accept_365",
+   192                                                       "visited_365", "has_click_365"
+   193                                                   ]
+   194       138        236.7      1.7      0.0          for cat in site_cats:
+   195       115   17959645.7 156170.8      0.6              s1 = [site_index.get(pid, {}).get(cat, set()) for pid in idx1]
+   196       115   18307424.4 159195.0      0.6              s2 = [site_index.get(pid, {}).get(cat, set()) for pid in idx2]
+   197       115  369813196.4 3.22e+06     12.4              features[f"{cat}_jaccard"] = [jaccard(a, b) for a, b in zip(s1, s2)]
+   198       230   11540555.0  50176.3      0.4              features[f"{cat}_overlap"] = [
+   199       230  266684804.9 1.16e+06      8.9                  overlap_size(a, b) for a, b in zip(s1, s2)
+   200                                                       ]
+   201                                           
+   202                                                   # Временные
+   203        69      65882.3    954.8      0.0          features["last_event_diff_days"] = np.abs(
+   204        46     743615.2  16165.5      0.0              pd.to_datetime(rows1["last_event_date"]) -
+   205        23     280547.8  12197.7      0.0              pd.to_datetime(rows2["last_event_date"])
+   206        23      31395.1   1365.0      0.0          ).dt.total_seconds() / 86400
+   207                                           
+   208        69     589658.6   8545.8      0.0          days1 = rows1.get(
+   209        23     196429.2   8540.4      0.0              "active_days", pd.Series([set()] * len(rows1))
+   210        23  138357003.6 6.02e+06      4.6          ).apply(safe_set)
+   211        69     598568.5   8674.9      0.0          days2 = rows2.get(
+   212        23     187310.6   8143.9      0.0              "active_days", pd.Series([set()] * len(rows2))
+   213        23  140847958.9 6.12e+06      4.7          ).apply(safe_set)
+   214        46     878492.2  19097.7      0.0          features["day_overlap_ratio"] = [
+   215        46   98728852.2 2.15e+06      3.3              time_overlap_ratio(a, b) for a, b in zip(days1, days2)
+   216                                                   ]
+   217                                           
+   218                                                   # Флаги и конфликты
+   219       138        202.7      1.5      0.0          for flag in ["is_gmail", "is_yandex", "is_man", "is_woman", "is_phone"]:
+   220       115     189896.2   1651.3      0.0              features[f"both_{flag}"] = (
+   221       230    2616968.0  11378.1      0.1                    rows1[flag].fillna(False).astype(bool)
+   222       115    2571849.6  22363.9      0.1                  & rows2[flag].fillna(False).astype(bool)
+   223       115      59617.1    518.4      0.0              ).astype(int)
+   224                                           
+   225        23    3175025.6 138044.6      0.1          features = add_conflict_features(features, rows1, rows2)
+   226                                           
+   227        23         25.6      1.1      0.0          X_batches.append(features)
+   228                                           
+   229        23         19.0      0.8      0.0          if training and entity_id_map is not None:
+   230   8490473    6875932.7      0.8      0.2              y_batch = np.array([entity_id_map.get(p1) == entity_id_map.get(p2)
+   231   8490450    4994919.9      0.6      0.2                                 for p1, p2 in batch_pairs], dtype=int)
+   232        23         83.6      3.6      0.0              y_batches.append(y_batch)
+   233                                           
+   234         3    1178306.8 392768.9      0.0      X = pd.concat(X_batches, ignore_index=True)
+   235         3      41808.0  13936.0      0.0      y = np.concatenate(y_batches) if y_batches else None
+   236         3       1162.7    387.6      0.0      logger.info(f"Feature generation завершена. Новое shape: {X.shape}")
+   237         3          2.4      0.8      0.0      return X, y
+
+Total time: 0.241329 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/clustering.py
+Function: evaluate_clustering at line 20
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    20                                           @profile
+    21                                           def evaluate_clustering(clusters, profiles_df, split="test"):
+    22                                               """
+    23                                               Оценка качества кластеризации. Только для обучения
+    24                                               """
+    25         1      12355.2  12355.2      5.1      test_df = profiles_df[profiles_df["split"] == split]
+    26         1     212507.9 212507.9     88.1      true_entity_map = test_df["entity_id"].to_dict()
+    27         1       6904.0   6904.0      2.9      true_multi = test_df.groupby("entity_id").size()
+    28         1       3412.2   3412.2      1.4      true_multi = true_multi[true_multi > 1]
+    29         1         15.6     15.6      0.0      n_true_multi = len(true_multi)
+    30         1          1.1      1.1      0.0      perfect = 0
+    31         1          0.6      0.6      0.0      partial = 0
+    32      1293        863.6      0.7      0.4      for cluster in clusters:
+    33      1292       2532.1      2.0      1.0          eids = {true_entity_map.get(pid) for pid in cluster if pid in true_entity_map}
+    34      1292        778.6      0.6      0.3          eids.discard(None)
+    35      1292        791.5      0.6      0.3          if len(eids) == 1:
+    36       691        375.2      0.5      0.2              perfect += 1
+    37       601        362.1      0.6      0.2          elif len(eids) > 1:
+    38       601        338.9      0.6      0.1              partial += 1
+    39         1          3.0      3.0      0.0      recovery_rate = perfect / n_true_multi if n_true_multi > 0 else 0
+    40         1         69.7     69.7      0.0      print(f"  Полностью восстановлено: {perfect}/{n_true_multi} ({recovery_rate:.1%})")
+    41         1         11.6     11.6      0.0      print(f"  Частично (смешано): {partial}")
+    42         1          3.0      3.0      0.0      return {
+    43         1          0.9      0.9      0.0          'recovery_rate': recovery_rate,
+    44         1          0.7      0.7      0.0          'perfect_recovered': perfect,
+    45         1          0.6      0.6      0.0          'n_true_multi': n_true_multi,
+    46         1          0.8      0.8      0.0          'partial': partial
+    47                                               }
+
+Total time: 24.2528 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/clustering.py
+Function: hierarchical_average_clustering at line 49
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    49                                           @profile
+    50                                           def hierarchical_average_clustering(pairs, probabilities, all_profiles, threshold=0.7):
+    51                                               """
+    52                                               Агломеративная кластеризация с методом средней связи (average linkage).
+    53                                           
+    54                                               Аргументы:
+    55                                                   pairs: список пар (profile_id1, profile_id2)
+    56                                                   probabilities: массив вероятностей для каждой пары
+    57                                                   all_profiles: список всех profile_id (можно взять из profiles_df.index)
+    58                                                   threshold: порог сходства (0..1) для отсечения дендрограммы.
+    59                                                              Рекомендуемый диапазон: 0.6-0.8.
+    60                                               """
+    61         1        390.0    390.0      0.0      logger.info(f"Hierarchical average clustering | threshold={threshold}")
+    62                                           
+    63         1         54.7     54.7      0.0      profile_list = list(all_profiles)
+    64         1          3.4      3.4      0.0      n = len(profile_list)
+    65         1       1436.9   1436.9      0.0      idx_map = {p: i for i, p in enumerate(profile_list)}
+    66                                           
+    67                                               # Инициализируем матрицу расстояний единицами (диагональ 0)
+    68         1     677563.4 677563.4      2.8      dist_matrix = np.ones((n, n))
+    69         1        611.6    611.6      0.0      np.fill_diagonal(dist_matrix, 0)
+    70                                           
+    71                                               # Заполняем известные расстояния (1 - prob)
+    72   4224371    2967393.2      0.7     12.2      for (a, b), p in zip(pairs, probabilities):
+    73   4224370    2601412.4      0.6     10.7          i, j = idx_map[a], idx_map[b]
+    74   4224370    2543090.1      0.6     10.5          dist = 1 - p
+    75   4224370    3574404.1      0.8     14.7          if dist < dist_matrix[i, j]:   # берём минимальное расстояние (максимальную вероятность)
+    76   4224370    2685494.9      0.6     11.1              dist_matrix[i, j] = dist
+    77   4224370    2833682.5      0.7     11.7              dist_matrix[j, i] = dist
+    78                                           
+    79                                               # Сжатый вид (треугольник)
+    80         1    1335838.4 1.34e+06      5.5      condensed = squareform(dist_matrix)
+    81                                           
+    82                                               # Иерархическая кластеризация методом средней связи
+    83         1    5014438.9 5.01e+06     20.7      Z = linkage(condensed, method='average')
+    84                                           
+    85                                               # Отсекаем по порогу расстояния (1 - threshold)
+    86         1       2713.7   2713.7      0.0      labels = fcluster(Z, 1 - threshold, criterion='distance')
+    87                                           
+    88                                               # Группируем
+    89         1          0.8      0.8      0.0      clusters = {}
+    90     11230       6078.6      0.5      0.0      for i, lbl in enumerate(labels):
+    91     11229       7487.0      0.7      0.0          clusters.setdefault(lbl, []).append(profile_list[i])
+    92                                           
+    93         1        417.1    417.1      0.0      result = [c for c in clusters.values() if len(c) >= 2]
+    94         1        307.2    307.2      0.0      logger.info(f"  Создано {len(result)} кластеров")
+    95         1          0.7      0.7      0.0      return result
+
+Total time: 0 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/clustering.py
+Function: is_confident_cluster at line 97
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    97                                           @profile
+    98                                           def is_confident_cluster(cluster, prob_map, site_index, profiles_df,
+    99                                                                    min_avg_prob=0.9,
+   100                                                                    max_pairs_without_sites_ratio=0.5,
+   101                                                                    max_days_gap=730):
+   102                                               """
+   103                                               Проверяет, является ли кластер достаточно уверенным для автоматического принятия.
+   104                                               Возвращает (is_confident, details), где details – словарь с метриками.
+   105                                               """
+   106                                               n = len(cluster)
+   107                                               if n < 2:
+   108                                                   return False, {}
+   109                                           
+   110                                               # 1. Средняя и минимальная вероятности
+   111                                               probs = []
+   112                                               for i in range(n):
+   113                                                   for j in range(i+1, n):
+   114                                                       key = tuple(sorted((cluster[i], cluster[j])))
+   115                                                       p = prob_map.get(key, 0.0)
+   116                                                       probs.append(p)
+   117                                               avg_prob = np.mean(probs) if probs else 0.0
+   118                                               min_prob = np.min(probs) if probs else 1.0
+   119                                           
+   120                                               # 2. Доля пар без общих сайтов
+   121                                               total_pairs = 0
+   122                                               no_sites_pairs = 0
+   123                                               for i in range(n):
+   124                                                   sites_i = site_index.get(cluster[i], {}).get("_all", set())
+   125                                                   for j in range(i+1, n):
+   126                                                       sites_j = site_index.get(cluster[j], {}).get("_all", set())
+   127                                                       total_pairs += 1
+   128                                                       if not (sites_i & sites_j):
+   129                                                           no_sites_pairs += 1
+   130                                               no_sites_ratio = no_sites_pairs / total_pairs if total_pairs else 0.0
+   131                                           
+   132                                               # 3. Разброс дат последней активности
+   133                                               dates = []
+   134                                               for pid in cluster:
+   135                                                   dt = profiles_df.loc[pid].get('last_event_date')
+   136                                                   if pd.notna(dt):
+   137                                                       dates.append(pd.to_datetime(dt))
+   138                                               days_gap = (max(dates) - min(dates)).days if len(dates) > 1 else 0
+   139                                           
+   140                                               # Решение
+   141                                               is_confident = (avg_prob >= min_avg_prob and
+   142                                                               no_sites_ratio <= max_pairs_without_sites_ratio and
+   143                                                               days_gap <= max_days_gap)
+   144                                           
+   145                                               details = {
+   146                                                   'avg_prob': avg_prob,
+   147                                                   'min_prob': min_prob,
+   148                                                   'no_sites_ratio': no_sites_ratio,
+   149                                                   'days_gap': days_gap,
+   150                                                   'size': n
+   151                                               }
+   152                                               return is_confident, details
+
+Total time: 0.00994122 s
+File: train_model.py
+Function: get_latest_parquet at line 29
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    29                                           @profile
+    30                                           def get_latest_parquet(directory="data/raw/training"):
+    31         1         34.0     34.0      0.3      path = Path(directory)
+    32         1       6428.6   6428.6     64.7      parquet_files = list(path.glob("*.parquet"))
+    33         1          0.6      0.6      0.0      if not parquet_files:
+    34                                                   raise FileNotFoundError(f"Нет .parquet файлов в {directory}")
+    35         1       3109.7   3109.7     31.3      latest = max(parquet_files, key=lambda p: p.stat().st_mtime)
+    36         1        367.9    367.9      3.7      logger.info(f"Выбран файл: {latest}")
+    37         1          0.4      0.4      0.0      return latest
+
+Total time: 4123.06 s
+File: train_model.py
+Function: main at line 39
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    39                                           @profile
+    40                                           def main():
+    41                                               # 1. Загрузка и предобработка (с разбиением на train/val/test 60/20/20)
+    42         1       9959.2   9959.2      0.0      DATA_PATH = get_latest_parquet()
+    43         1        310.4    310.4      0.0      logger.info("Загрузка данных и предобработка...")
+    44         1     323793.7 323793.7      0.0      df_raw = pd.read_parquet(DATA_PATH)
+    45         1  826607864.8 8.27e+08     20.0      profiles_df, site_index, cat_index = process_profiles(df_raw, split_data=True)
+    46                                           
+    47                                               # 2. Блокинг
+    48         1       1484.6   1484.6      0.0      logger.info("Генерация пар через блокинг...")
+    49         1      28114.3  28114.3      0.0      train_profiles = profiles_df[profiles_df["split"] == "train"]
+    50         1      15889.8  15889.8      0.0      val_profiles = profiles_df[profiles_df["split"] == "val"]
+    51         1      13484.5  13484.5      0.0      test_profiles = profiles_df[profiles_df["split"] == "test"]
+    52                                           
+    53         1     153885.3 153885.3      0.0      train_site_index = {pid: site_index[pid] for pid in train_profiles.index}
+    54         1      55269.6  55269.6      0.0      val_site_index = {pid: site_index[pid] for pid in val_profiles.index}
+    55         1      56230.9  56230.9      0.0      test_site_index = {pid: site_index[pid] for pid in test_profiles.index}
+    56                                           
+    57         2  103102257.4 5.16e+07      2.5      train_pairs = blocking_pipeline(
+    58         1          0.9      0.9      0.0          train_profiles, train_site_index,
+    59         1          2.7      2.7      0.0          max_group_size=CONFIG['blocking']['max_group_size']
+    60                                               )
+    61         2   26946815.6 1.35e+07      0.7      val_pairs = blocking_pipeline(
+    62         1          0.8      0.8      0.0          val_profiles, val_site_index,
+    63         1          2.7      2.7      0.0          max_group_size=CONFIG['blocking']['max_group_size']
+    64                                               )
+    65         2   26555713.8 1.33e+07      0.6      test_pairs = blocking_pipeline(
+    66         1          1.2      1.2      0.0          test_profiles, test_site_index,
+    67         1          2.6      2.6      0.0          max_group_size=CONFIG['blocking']['max_group_size']
+    68                                               )
+    69                                           
+    70                                               # 3. Вычисление IDF
+    71         2     902777.8 451388.9      0.0      idf_sites = compute_idf_sites(
+    72         1       1639.5   1639.5      0.0          site_index, (profiles_df["split"] == "train").sum()
+    73                                               )
+    74         2     286687.2 143343.6      0.0      idf_domains = compute_idf_email_domains(
+    75         1      22759.7  22759.7      0.0          profiles_df[profiles_df["split"] == "train"]
+    76                                               )
+    77                                           
+    78                                               # 4. Балансировка пар
+    79         1     783465.1 783465.1      0.0      entity_map = profiles_df["entity_id"].to_dict()
+    80         1    6423347.3 6.42e+06      0.2      pos_pairs = [(a,b) for a,b in train_pairs if entity_map[a]==entity_map[b]]
+    81         1    9961120.1 9.96e+06      0.2      neg_pairs = [(a,b) for a,b in train_pairs if entity_map[a]!=entity_map[b]]
+    82         1          4.6      4.6      0.0      ratio = CONFIG['training']['balance_ratio']
+    83         1          5.7      5.7      0.0      n_neg = min(len(pos_pairs) * ratio, len(neg_pairs))
+    84         1        166.4    166.4      0.0      rng = np.random.default_rng(CONFIG['seed'])
+    85         2          2.2      1.1      0.0      sampled_neg = [
+    86         2      16677.1   8338.6      0.0          neg_pairs[i] for i in rng.choice(len(neg_pairs), n_neg, replace=False)
+    87                                               ]
+    88         1       2731.9   2731.9      0.0      train_pairs_balanced = pos_pairs + sampled_neg
+    89         1       4584.2   4584.2      0.0      rng.shuffle(train_pairs_balanced)
+    90         2        316.6    158.3      0.0      logger.info(
+    91         1          8.3      8.3      0.0          f"Train: {len(pos_pairs)} pos, {len(sampled_neg)} neg (ratio {ratio})"
+    92                                               )
+    93                                           
+    94                                               # 5. Построение признаков
+    95         2   17405970.5  8.7e+06      0.4      X_train, y_train = build_features(
+    96         1          1.0      1.0      0.0          train_pairs_balanced, profiles_df, site_index, cat_index,
+    97         1          0.6      0.6      0.0          idf_sites, idf_domains, training=True
+    98                                               )
+    99         2 1488319792.6 7.44e+08     36.1      X_val, y_val = build_features(
+   100         1          0.9      0.9      0.0          val_pairs, profiles_df, site_index, cat_index,
+   101         1          0.7      0.7      0.0          idf_sites, idf_domains, training=True
+   102                                               )
+   103         2 1479928574.3  7.4e+08     35.9      X_test, y_test = build_features(
+   104         1          1.3      1.3      0.0          test_pairs, profiles_df, site_index, cat_index,
+   105         1          0.8      0.8      0.0          idf_sites, idf_domains, training=True
+   106                                               )
+   107                                           
+   108                                               # 6. Обучение модели
+   109         2        674.1    337.1      0.0      model = CatBoostClassifier(
+   110         1          2.8      2.8      0.0          iterations=CONFIG['model']['iterations'],
+   111         1          0.8      0.8      0.0          learning_rate=CONFIG['model']['learning_rate'],
+   112         1          1.1      1.1      0.0          depth=CONFIG['model']['depth'],
+   113         1          0.8      0.8      0.0          l2_leaf_reg=CONFIG['model']['l2_leaf_reg'],
+   114         1          1.0      1.0      0.0          random_seed=CONFIG['seed'],
+   115         1          0.7      0.7      0.0          verbose=100,
+   116         1          1.1      1.1      0.0          early_stopping_rounds=CONFIG['model']['early_stopping_rounds'],
+   117         1          0.9      0.9      0.0          scale_pos_weight=CONFIG['model']['scale_pos_weight'],
+   118         1          0.5      0.5      0.0          eval_metric=CONFIG['model']['eval_metric'],
+   119                                               )
+   120         1   92986895.0  9.3e+07      2.3      model.fit(X_train, y_train, eval_set=(X_val, y_val))
+   121                                           
+   122                                               # 7. Оценка на тесте (парная)
+   123         1    5627756.5 5.63e+06      0.1      y_test_proba = model.predict_proba(X_test)[:, 1]
+   124         1          2.5      2.5      0.0      thr = CONFIG['clustering']['threshold']
+   125         1       5640.0   5640.0      0.0      y_pred = (y_test_proba >= thr).astype(int)
+   126         1        181.5    181.5      0.0      print("\n--- Оценка пар на тесте ---")
+   127         1    1229789.3 1.23e+06      0.0      print(classification_report(y_test, y_pred, digits=4))
+   128                                           
+   129                                               # 8. Кластеризация на тесте
+   130         1          1.9      1.9      0.0      all_test_profiles = set()
+   131   4224371    2393617.7      0.6      0.1      for a,b in test_pairs:
+   132   4224370    2238191.9      0.5      0.1          all_test_profiles.add(a)
+   133   4224370    2255295.6      0.5      0.1          all_test_profiles.add(b)
+   134         1        353.1    353.1      0.0      all_test_profiles = list(all_test_profiles)
+   135         1   26614865.6 2.66e+07      0.6      clusters = hierarchical_average_clustering(test_pairs, y_test_proba, all_test_profiles, threshold=thr)
+   136         1     244885.4 244885.4      0.0      metrics = evaluate_clustering(clusters, profiles_df, split="test")
+   137                                           
+   138                                               # 9. Сохранение модели и отчёта
+   139                                               # Генерируем уникальный идентификатор эксперимента
+   140         1        226.3    226.3      0.0      timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+   141         1          1.0      1.0      0.0      experiment_id = timestamp
+   142                                           
+   143                                               # Папка для моделей
+   144         1         38.3     38.3      0.0      model_dir = Path(CONFIG['paths']['model_dir'])
+   145         1       3477.9   3477.9      0.0      model_dir.mkdir(parents=True, exist_ok=True)
+   146         1          1.9      1.9      0.0      model_filename = f"catboost_model_{experiment_id}.cbm"
+   147         1         33.1     33.1      0.0      model_path = model_dir / model_filename
+   148         1     166786.0 166786.0      0.0      model.save_model(model_path)
+   149         1        328.0    328.0      0.0      logger.info(f"Модель сохранена как {model_path}")
+   150                                           
+   151                                               # Папка для результатов обучения
+   152         1         23.3     23.3      0.0      results_dir = Path(CONFIG['paths'].get('training_results', 'data/training-results'))
+   153         1       3276.0   3276.0      0.0      results_dir.mkdir(parents=True, exist_ok=True)
+   154                                           
+   155                                               # Подготовка отчёта
+   156         1      19920.7  19920.7      0.0      sizes_true = profiles_df[profiles_df["split"] == "test"].groupby("entity_id").size().value_counts().sort_index().to_dict()
+   157         1       1673.5   1673.5      0.0      sizes_pred = {size: sum(1 for cl in clusters if len(cl) == size) for size in set(len(cl) for cl in clusters)}
+   158                                           
+   159         1          3.8      3.8      0.0      report = {
+   160         1          0.7      0.7      0.0          "experiment_id": experiment_id,
+   161         1          0.5      0.5      0.0          "model_filename": model_filename,
+   162         1          1.0      1.0      0.0          "recovery_rate": metrics['recovery_rate'],
+   163         1          0.5      0.5      0.0          "perfect_recovered": metrics['perfect_recovered'],
+   164         1          0.5      0.5      0.0          "n_true_multi": metrics['n_true_multi'],
+   165         1          0.5      0.5      0.0          "partial_clusters": metrics['partial'],
+   166         1          1.0      1.0      0.0          "total_clusters": len(clusters),
+   167         1          0.5      0.5      0.0          "true_multi_sizes": sizes_true,
+   168         1          0.5      0.5      0.0          "predicted_cluster_sizes": sizes_pred,
+   169         1          0.7      0.7      0.0          "threshold_used": thr,
+   170         1          0.9      0.9      0.0          "num_pairs_generated": len(test_pairs),
+   171         1      13010.5  13010.5      0.0          "num_profiles_test": len(profiles_df[profiles_df["split"] == "test"]),
+   172         1    1249536.7 1.25e+06      0.0          "pair_classification_report": classification_report(y_test, y_pred, output_dict=True),
+   173         1          1.4      1.4      0.0          "config": {
+   174         1          1.8      1.8      0.0              "seed": CONFIG['seed'],
+   175         1          1.2      1.2      0.0              "blocking": CONFIG['blocking'],
+   176         1          1.1      1.1      0.0              "model": CONFIG['model'],
+   177         1          1.3      1.3      0.0              "training": CONFIG['training'],
+   178         1          0.9      0.9      0.0              "clustering": CONFIG['clustering'],
+   179         1          2.4      2.4      0.0              "confidence": CONFIG.get('confidence', {}),
+   180         1         22.4     22.4      0.0              "paths": CONFIG['paths']
+   181                                                   }
+   182                                               }
+   183                                           
+   184         1         35.4     35.4      0.0      report_path = results_dir / f"training_report_{experiment_id}.json"
+   185         2       6642.7   3321.3      0.0      with open(report_path, 'w') as f:
+   186         1       2432.7   2432.7      0.0          json.dump(report, f, indent=2, ensure_ascii=False)
+   187         1        324.7    324.7      0.0      logger.info(f"Отчёт сохранён в {report_path}")
+   188                                           
+   189                                               # Обновляем config.yaml: устанавливаем active_experiment_report на этот отчёт
+   190         1         23.1     23.1      0.0      config_path = Path("config.yaml")
+   191         1       1243.0   1243.0      0.0      if config_path.exists():
+   192         2       3188.7   1594.3      0.0          with open(config_path, 'r') as f:
+   193         1      27593.0  27593.0      0.0              cfg = yaml.safe_load(f)
+   194         1       7641.1   7641.1      0.0          cfg['active_experiment_report'] = str(report_path.resolve())
+   195         2       3587.1   1793.5      0.0          with open(config_path, 'w') as f:
+   196         1      19326.6  19326.6      0.0              yaml.dump(cfg, f, default_flow_style=False, allow_unicode=True)
+   197         1        291.9    291.9      0.0          logger.info(f"Конфиг обновлён: active_experiment_report = {report_path}")
+   198                                           
+   199         1         19.3     19.3      0.0      print(f"Recovery на тесте: {metrics['recovery_rate']:.1%} (perfect: {metrics['perfect_recovered']}/{metrics['n_true_multi']})")
+

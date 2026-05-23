@@ -291,24 +291,27 @@ Line #      Hits         Time  Per Hit   % Time  Line Contents
    257         1        278.8    278.8      0.0      if 'entity_type' not in df.columns:
    258                                                   # Определяем количество профилей в каждой entity
    259         1      38824.4  38824.4      0.2          entity_counts = df.groupby('entity_id')['profile_id'].transform('nunique')
-   260         1        319.6    319.6      0.0          df['entity_type'] = entity_counts.apply(
-   261                                                       lambda x: 'multi_profile' if x > 1 else 'single_profile'
-   262                                                   )
-   263         1        236.8    236.8      0.0          logger.info("Колонка 'entity_type' вычислена автоматически.")
-   264         1    5628657.2 5.63e+06     28.4  
-   265         1        313.1    313.1      0.0      after_fix = df.groupby('profile_id')['entity_id'].nunique().max()
-   266                                               logger.info(f"  После унификации: max entity_id на profile_id = {after_fix}")
+   260         1        319.6    319.6      0.0          # Анастасия, векторизованно присваиваем, вместо медленного apply
+   261                                                   df['entity_type'] = np.where(
+   262                                                       entity_counts > 1,  # условие
+   263         1        236.8    236.8      0.0              'multi_profile',  # если True
+   264         1    5628657.2 5.63e+06     28.4              'single_profile'  # иначе
+   265         1        313.1    313.1      0.0          )
+   266                                                   logger.info("Колонка 'entity_type' вычислена автоматически.")
    267         1        212.9    212.9      0.0  
-   268         1        332.4    332.4      0.0      # 6. Нормализация контактов
-   269         1        362.9    362.9      0.0      logger.info("Шаг 6/6: нормализация контактов...")
-   270                                               df = normalize_contacts(df)
-   271         1          1.7      1.7      0.0      logger.info(f"  Добавлены колонки: email_normalized, email_domain, "
-   272                                                           f"phone_normalized, phone_prefix, first_name_clean, last_name_clean, birthday_clean")
-   273                                               logger.info("-" * 50)
-   274                                               logger.info(f"Предобработка завершена. Строк: {len(df)}, колонок: {df.shape[1]}")
-   275                                               logger.info("=" * 50)
-   276                                           
-   277                                               return df
+   268         1        332.4    332.4      0.0      after_fix = df.groupby('profile_id')['entity_id'].nunique().max()
+   269         1        362.9    362.9      0.0      logger.info(f"  После унификации: max entity_id на profile_id = {after_fix}")
+   270                                           
+   271         1          1.7      1.7      0.0      # 6. Нормализация контактов
+   272                                               logger.info("Шаг 6/6: нормализация контактов...")
+   273                                               df = normalize_contacts(df)
+   274                                               logger.info(f"  Добавлены колонки: email_normalized, email_domain, "
+   275                                                           f"phone_normalized, phone_prefix, first_name_clean, last_name_clean, birthday_clean")
+   276                                               logger.info("-" * 50)
+   277                                               logger.info(f"Предобработка завершена. Строк: {len(df)}, колонок: {df.shape[1]}")
+   278                                               logger.info("=" * 50)
+   279                                           
+   280                                               return df
 
 Total time: 374.113 s
 File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/utils.py
@@ -316,11 +319,12 @@ Function: frozenset_to_str at line 10
 
 Line #      Hits         Time  Per Hit   % Time  Line Contents
 ==============================================================
-    10                                           try:
-    11                                               profile
-    12                                           except NameError:
-    13                                               def profile(func):
-    14                                                   return func
+    10                                           
+    11                                           try:
+    12                                               profile
+    13                                           except NameError:
+    14                                               def profile(func):
+    15                                                   return func
 
 Total time: 496.961 s
 File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/utils.py
@@ -328,29 +332,7 @@ Function: safe_set at line 30
 
 Line #      Hits         Time  Per Hit   % Time  Line Contents
 ==============================================================
-    30                                               if pd.notna(val):
-    31                                                   return str(val).strip()
-    32                                           
-    33                                               return ""
-    34                                           
-    35  67923048   54116347.2      0.8     10.9  
-    36  50942286  265848711.6      5.2     53.5  @profile
-    37                                           def safe_set(val: Any) -> Set:
-    38  16980762   12368656.6      0.7      2.5      """
-    39                                               Преобразует frozenset, строку или None в set.
-    40                                               """
-    41                                               if isinstance(val, frozenset):
-    42                                                   return {x for x in val if pd.notna(x) and x != ''}
-    43  16980762   15148467.1      0.9      3.0  
-    44  16980762  149479150.1      8.8     30.1      if isinstance(val, str):
-    45                                                   if not val.strip():
-    46                                                       return set()
-    47                                                   return {x.strip() for x in val.split(",") if x.strip()}
-    48                                           
-    49                                               if isinstance(val, (list, tuple, set)):
-    50                                                   return {x for x in val if pd.notna(x) and x != ''}
-    51                                           
-    52                                               return set()
+    30                                                   )
 
 Total time: 0 s
 File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/utils.py
@@ -358,22 +340,7 @@ Function: normalize_bool at line 49
 
 Line #      Hits         Time  Per Hit   % Time  Line Contents
 ==============================================================
-    49                                               if isinstance(val, (list, tuple, set)):
-    50                                                   return {x for x in val if pd.notna(x) and x != ''}
-    51                                           
-    52                                               return set()
-    53                                           
-    54                                           
-    55                                           @profile
-    56                                           def normalize_bool(val: Any) -> bool:
-    57                                               """Надёжное преобразование различных представлений True/False."""
-    58                                               if val is None or pd.isna(val):
-    59                                                   return False
-    60                                           
-    61                                               if isinstance(val, bool):
-    62                                                   return val
-    63                                           
-    64                                               return str(val).strip().lower() in {"true", "1", "yes", "y", "t", "да"}
+    49                                                       x for x in val
 
 Total time: 187.898 s
 File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/utils.py
@@ -381,20 +348,27 @@ Function: jaccard at line 61
 
 Line #      Hits         Time  Per Hit   % Time  Line Contents
 ==============================================================
-    61                                               if isinstance(val, bool):
-    62                                                   return val
-    63                                           
-    64  85859664   58639067.5      0.7     31.2      return str(val).strip().lower() in {"true", "1", "yes", "y", "t", "да"}
-    65  21918987   13198424.3      0.6      7.0  
-    66  63940677   38556520.1      0.6     20.5  
-    67  19068925   11477529.0      0.6      6.1  @profile
-    68  44871752   66026689.2      1.5     35.1  def jaccard(set_a: Set, set_b: Set) -> float:
-    69                                               """Коэффициент Жаккара для двух множеств."""
-    70                                               if not set_a and not set_b:
-    71                                                   return 1.0
-    72                                               if not set_a or not set_b:
-    73                                                   return 0.0
-    74                                               return len(set_a & set_b) / len(set_a | set_b)
+    61                                               if isinstance(val, (list, tuple, set)):
+    62                                                   return {
+    63                                                       x for x in val
+    64  85859664   58639067.5      0.7     31.2              if x is not None
+    65  21918987   13198424.3      0.6      7.0              and not (isinstance(x, float) and math.isnan(x))
+    66  63940677   38556520.1      0.6     20.5              and x != ''
+    67  19068925   11477529.0      0.6      6.1          }
+    68  44871752   66026689.2      1.5     35.1  
+    69                                               return set()
+    70                                           
+    71                                           
+    72                                           @profile
+    73                                           def normalize_bool(val: Any) -> bool:
+    74                                               """Надёжное преобразование различных представлений True/False."""
+    75                                               if val is None or pd.isna(val):
+    76                                                   return False
+    77                                           
+    78                                               if isinstance(val, bool):
+    79                                                   return val
+    80                                           
+    81                                               return str(val).strip().lower() in {"true", "1", "yes", "y", "t", "да"}
 
 Total time: 63.5973 s
 File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/utils.py
@@ -402,7 +376,17 @@ Function: overlap_size at line 71
 
 Line #      Hits         Time  Per Hit   % Time  Line Contents
 ==============================================================
-    71                                                   return 1.0
+    71                                           
+    72                                           @profile
+    73                                           def normalize_bool(val: Any) -> bool:
+    74  65331185   63597283.6      1.0    100.0      """Надёжное преобразование различных представлений True/False."""
+    75                                               if val is None or pd.isna(val):
+    76                                                   return False
+    77                                           
+    78                                               if isinstance(val, bool):
+    79                                                   return val
+    80                                           
+    81                                               return str(val).strip().lower() in {"true", "1", "yes", "y", "t", "да"}
 
 Total time: 57.287 s
 File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/aggregation_profiles.py
@@ -425,8 +409,12 @@ Line #      Hits         Time  Per Hit   % Time  Line Contents
     16                                           
     17                                           @profile
     18         1        564.1    564.1      0.0  def last_non_null(series):
-    19                                               non_null = series.dropna()
-    20         1       9526.2   9526.2      0.0      return non_null.iloc[-1] if len(non_null) > 0 else None
+    19                                               # .dropna() создаёт "тяжелую" копию. МОжно воспользоваться маской. Быстрее
+    20         1       9526.2   9526.2      0.0      mask = series.notna().to_numpy()  # булев массив, без копирования данных
+    21                                               if not mask.any():
+    22        19         18.1      1.0      0.0          return None
+    23                                               idx = mask.nonzero()[0][-1]
+    24         1          1.2      1.2      0.0      return series.iat[idx]
 
 Total time: 0.848491 s
 File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/site_activity_processor.py
@@ -434,10 +422,11 @@ Function: _safe_int at line 12
 
 Line #      Hits         Time  Per Hit   % Time  Line Contents
 ==============================================================
-    12                                               profile
-    13                                           except NameError:
-    14                                               def profile(func):
-    15    235038     230773.8      1.0     27.2          return func
+    12                                           try:
+    13                                               profile
+    14                                           except NameError:
+    15    235038     230773.8      1.0     27.2      def profile(func):
+    16    235038     617717.1      2.6     72.8          return func
 
 Total time: 855.404 s
 File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/site_activity_processor.py
@@ -445,61 +434,76 @@ Function: build_site_index at line 21
 
 Line #      Hits         Time  Per Hit   % Time  Line Contents
 ==============================================================
-    21                                               try:
-    22                                                   return int(float(v))
-    23                                               except (ValueError, TypeError):
-    24                                                   return None
-    25                                           
+    21                                               """Безопасное преобразование site_id в int."""
+    22                                               try:
+    23                                                   return int(float(v))
+    24                                               except (ValueError, TypeError):
+    25                                                   return None
     26                                           
-    27                                           @profile
-    28                                           def build_site_index(df_clean):
-    29         1        348.7    348.7      0.0      """
-    30                                               Строит индекс цифрового следа профилей.
-    31         1          3.2      3.2      0.0  
-    32                                               Вход: df_clean после full_preprocessing()
-    33                                               Выход: dict[profile_id] -> dict[category] -> set[int]
-    34                                               """
-    35                                               logger.info("Сборка site_index...")
-    36         2          1.9      1.0      0.0  
-    37        62        417.9      6.7      0.0      site_prefixes = [
-    38        60        261.4      4.4      0.0          "has_accept_", "has_account", "has_click_", "has_order_",
-    39                                                   "has_view_", "source_site_", "visited_",
-    40                                               ]
-    41         1        207.3    207.3      0.0  
-    42        13          7.0      0.5      0.0      site_categories = [
-    43        12         73.2      6.1      0.0          col for col in df_clean.columns
-    44                                                   if any(col.startswith(prefix) for prefix in site_prefixes)
-    45         1          0.8      0.8      0.0      ]
-    46                                           
-    47                                               logger.info(f"  Найдено категорий: {len(site_categories)}")
-    48     61928     407380.0      6.6      0.0      for cat in site_categories:
-    49     61927    1280540.0     20.7      0.1          logger.debug(f"    {cat}")
-    50     61927      65872.4      1.1      0.0  
-    51                                               site_index = {}
+    27                                           
+    28                                           @profile
+    29         1        348.7    348.7      0.0  def build_site_index(df_clean):
+    30                                               """
+    31         1          3.2      3.2      0.0      Строит индекс цифрового следа профилей.
+    32                                           
+    33                                               Вход: df_clean после full_preprocessing()
+    34                                               Выход: dict[profile_id] -> dict[category] -> set[int]
+    35                                               """
+    36         2          1.9      1.0      0.0      logger.info("Сборка site_index...")
+    37        62        417.9      6.7      0.0  
+    38        60        261.4      4.4      0.0      site_prefixes = ["has_accept_", "has_account", "has_click_", "has_order_",
+    39                                                                "has_view_", "source_site_", "visited_",]
+    40                                           
+    41         1        207.3    207.3      0.0      site_categories = [
+    42        13          7.0      0.5      0.0          col for col in df_clean.columns
+    43        12         73.2      6.1      0.0          if any(col.startswith(prefix) for prefix in site_prefixes)
+    44                                               ]
+    45         1          0.8      0.8      0.0  
+    46                                               logger.info(f"  Найдено категорий: {len(site_categories)}")
+    47                                               for cat in site_categories:
+    48     61928     407380.0      6.6      0.0          logger.debug(f"    {cat}")
+    49     61927    1280540.0     20.7      0.1  
+    50     61927      65872.4      1.1      0.0      # Снова единый объект GroupBy для всех категорий
+    51                                               gb = df_clean.groupby("profile_id")
     52                                           
-    53        13         27.3      2.1      0.0      # Инициализируем словарь для каждого profile_id
-    54        12        378.7     31.6      0.0      for pid in df_clean["profile_id"].unique():
-    55                                                   site_index[pid] = {cat: set() for cat in site_categories}
-    56                                                   site_index[pid]["_all"] = set()
-    57                                           
-    58        24  847401718.7 3.53e+07     99.1      # Заполняем по категориям
-    59        12         22.3      1.9      0.0      for cat in site_categories:
-    60                                                   if cat not in df_clean.columns:
-    61                                                       logger.warning(f"  Колонка {cat} не найдена, пропускаем")
-    62    743136    4561709.7      6.1      0.5              continue
-    63    743124    1112098.7      1.5      0.1  
-    64    743124     572460.9      0.8      0.1          grouped = df_clean.groupby("profile_id")[cat].apply(
-    65                                                       lambda x: {_safe_int(v) for v in x.dropna() if v and pd.notna(v)} - {None}
-    66         1        489.5    489.5      0.0          )
-    67         1        283.8    283.8      0.0  
-    68                                                   for pid, sites in grouped.items():
-    69         1          0.7      0.7      0.0              site_index[pid][cat] = sites
-    70                                                       site_index[pid]["_all"].update(sites)
-    71                                           
-    72                                               logger.info(f"  Профилей в индексе: {len(site_index)}")
-    73                                               logger.info(f"  Категорий: {len(site_categories)}")
+    53        13         27.3      2.1      0.0      # site_index только для профилей, у которых есть хоть какие-то данные
+    54        12        378.7     31.6      0.0      all_pids = df_clean["profile_id"].unique()
+    55                                           
+    56                                               # Словарь надо наполнять по мере обработки категорий
+    57                                               # Ключи категорий добавляем позже, чтобы не создавать пустые словари заранее
+    58        24  847401718.7 3.53e+07     99.1      site_index = {pid: {"_all": set()} for pid in all_pids}
+    59        12         22.3      1.9      0.0  
+    60                                               # Заполняем по категориям
+    61                                               for cat in site_categories:
+    62    743136    4561709.7      6.1      0.5          if cat not in df_clean.columns:
+    63    743124    1112098.7      1.5      0.1              logger.warning(f"  Колонка {cat} не найдена, пропускаем")
+    64    743124     572460.9      0.8      0.1              continue
+    65                                                   # Векторизованная обработка группы
+    66         1        489.5    489.5      0.0          # Быстрая лямбда без dropna и pd.notna
+    67         1        283.8    283.8      0.0          grouped = gb[cat].apply(  # Вот и общий GroupBy
+    68                                                       lambda x: {
+    69         1          0.7      0.7      0.0                  val for v in x
+    70                                                           if pd.notna(v) and v
+    71                                                           and (val := _safe_int(v)) is not None  # := (walrus operator)
+    72                                                       }
+    73                                                   )
     74                                           
-    75                                               return site_index
+    75                                                   for pid, sites in grouped.items():
+    76                                                       if pid not in site_index:
+    77                                                           site_index[pid] = {"_all": set()}
+    78                                                       site_index[pid][cat] = sites  # множество без None (фильтр _safe_int)
+    79                                                       site_index[pid]["_all"].update(sites)
+    80                                           
+    81                                               # Добавляем отсутствующие ключи категорий для всех профилей (пустые множества)
+    82                                               for pid in site_index:
+    83                                                   for cat in site_categories:
+    84                                                       if cat not in site_index[pid]:
+    85                                                           site_index[pid][cat] = set()
+    86                                           
+    87                                               logger.info(f"  Профилей в индексе: {len(site_index)}")
+    88                                               logger.info(f"  Категорий: {len(site_categories)}")
+    89                                           
+    90                                               return site_index
 
 Total time: 722.662 s
 File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/cat_activity_processor.py
@@ -539,77 +543,81 @@ Function: process_profiles at line 99
 Line #      Hits         Time  Per Hit   % Time  Line Contents
 ==============================================================
     99                                           
-   100                                               # Для features.py нужна last_event_date
-   101                                               profiles_df["last_event_date"] = profiles_df["last_event_time"]
+   100                                               # Присоединяем к profiles_df
+   101                                               profiles_df = profiles_df.join(time_agg)
    102                                           
-   103                                               return profiles_df
-   104                                           
-   105                                           @profile
-   106                                           def process_profiles(df_raw, split_data=False):
-   107                                               """
-   108                                               Полный цикл обработки.
-   109                                           
-   110                                               Вход:
-   111                                                   df_raw — сырой датафрейм
-   112         1        309.9    309.9      0.0          split_data — если True, добавляет колонку 'split' (train/val/test)
-   113         1        200.5    200.5      0.0                       если False, работает без разбиения (для production)
-   114         1        224.8    224.8      0.0  
-   115                                               Выход:
-   116                                                   profiles_df, site_index, cat_index
-   117         1       1306.5   1306.5      0.0      """
-   118         1          4.9      4.9      0.0      logger.info("=" * 50)
-   119                                               logger.info("Запуск process_profiles()")
-   120                                               logger.info("=" * 50)
-   121                                           
-   122                                               # Определяем, есть ли ground truth
-   123                                               has_entity = 'entity_id' in df_raw.columns
-   124                                               if not has_entity:
-   125                                                   # Добавляем фиктивные колонки для прохождения preprocessing
-   126                                                   df_raw = df_raw.copy()
-   127         1        435.5    435.5      0.0          df_raw['entity_id'] = df_raw['profile_id']
-   128         1   19851713.7 1.99e+07      0.9          df_raw['entity_type'] = 'single_profile'
-   129                                                   split_data = False  # отключаем разбиение, так как нет истинных сущностей
-   130                                                   logger.info("Входные данные не содержат entity_id. Добавлены фиктивные колонки для обработки.")
-   131         1        477.3    477.3      0.0  
-   132         1  676769501.0 6.77e+08     29.0      # Этап 1: Предобработка
-   133                                               logger.info("Этап 1/5: Предобработка...")
-   134                                               df_clean = full_preprocessing(df_raw)
+   103                                               # Для features.py нужна last_event_date
+   104                                               profiles_df["last_event_date"] = profiles_df["last_event_time"]
+   105                                           
+   106                                               return profiles_df
+   107                                           
+   108                                           @profile
+   109                                           def process_profiles(df_raw, split_data=False):
+   110                                               """
+   111                                               Полный цикл обработки.
+   112         1        309.9    309.9      0.0  
+   113         1        200.5    200.5      0.0      Вход:
+   114         1        224.8    224.8      0.0          df_raw — сырой датафрейм
+   115                                                   split_data — если True, добавляет колонку 'split' (train/val/test)
+   116                                                                если False, работает без разбиения (для production)
+   117         1       1306.5   1306.5      0.0  
+   118         1          4.9      4.9      0.0      Выход:
+   119                                                   profiles_df, site_index, cat_index
+   120                                               """
+   121                                               logger.info("=" * 50)
+   122                                               logger.info("Запуск process_profiles()")
+   123                                               logger.info("=" * 50)
+   124                                           
+   125                                               # Определяем, есть ли ground truth
+   126                                               has_entity = 'entity_id' in df_raw.columns
+   127         1        435.5    435.5      0.0      if not has_entity:
+   128         1   19851713.7 1.99e+07      0.9          # Добавляем фиктивные колонки для прохождения preprocessing
+   129                                                   df_raw = df_raw.assign(  # единый assign вместо .copy() + 2 присваивания
+   130                                                       entity_id=df_raw['profile_id'],
+   131         1        477.3    477.3      0.0              entity_type='single_profile'
+   132         1  676769501.0 6.77e+08     29.0          )
+   133                                                   split_data = False  # отключаем разбиение, так как нет истинных сущностей
+   134                                                   logger.info("Входные данные не содержат entity_id. Добавлены фиктивные колонки для обработки.")
    135         1        412.3    412.3      0.0  
-   136         1  855724321.1 8.56e+08     36.7      # Этап 2: Паспорт профиля
-   137                                               logger.info("Этап 2/5: Построение паспорта профилей...")
-   138                                               profiles_df = build_profiles_df(df_clean)
+   136         1  855724321.1 8.56e+08     36.7      # Этап 1: Предобработка
+   137                                               logger.info("Этап 1/5: Предобработка...")
+   138                                               df_clean = full_preprocessing(df_raw)
    139         1        417.8    417.8      0.0  
-   140         1  722927072.2 7.23e+08     31.0      # Этап 3: Индекс сайтов (цифровой след)
-   141                                               logger.info("Этап 3/5: Построение индекса сайтов...")
-   142                                               site_index = build_site_index(df_clean)
+   140         1  722927072.2 7.23e+08     31.0      # Этап 2: Паспорт профиля
+   141                                               logger.info("Этап 2/5: Построение паспорта профилей...")
+   142                                               profiles_df = build_profiles_df(df_clean)
    143         1        608.1    608.1      0.0  
-   144         1   58434230.3 5.84e+07      2.5      # Этап 4: Индекс почтовой активности
-   145                                               logger.info("Этап 4/5: Построение индекса почтовой активности...")
-   146                                               cat_index = build_cat_index(df_clean)
+   144         1   58434230.3 5.84e+07      2.5      # Этап 3: Индекс сайтов (цифровой след)
+   145                                               logger.info("Этап 3/5: Построение индекса сайтов...")
+   146                                               site_index = build_site_index(df_clean)
    147         1          1.6      1.6      0.0  
-   148         1        280.3    280.3      0.0      # Этап 5: Добавление временных признаков
-   149         1     429681.3 429681.3      0.0      logger.info("Этап 5/5 Добавление временных признаков...")
-   150                                               profiles_df = add_temporal_features(profiles_df, df_clean)
+   148         1        280.3    280.3      0.0      # Этап 4: Индекс почтовой активности
+   149         1     429681.3 429681.3      0.0      logger.info("Этап 4/5: Построение индекса почтовой активности...")
+   150                                               cat_index = build_cat_index(df_clean)
    151         1        390.6    390.6      0.0  
-   152         2        230.8    115.4      0.0      # Опционально: добавляем разбиение
-   153         2         32.8     16.4      0.0      if split_data:
-   154         1          2.6      2.6      0.0          logger.info("Добавление разбиения train/val/test...")
-   155         1          1.7      1.7      0.0          profiles_df = add_train_val_test_split(profiles_df)
-   156                                           
-   157         1        235.3    235.3      0.0      logger.info("=" * 50)
-   158                                               logger.info(
-   159                                                   f"Готово: {len(profiles_df):,} профилей, "
-   160         1          1.0      1.0      0.0          f"{len(site_index):,} сайтовых индексов, "
-   161                                                   f"{len(cat_index):,} категориальных индексов"
-   162                                               )
-   163                                               logger.info("=" * 50)
-   164         1          0.9      0.9      0.0  
-   165                                               # После построения profiles_df удаляем фиктивные колонки, если их не было
-   166                                               if not has_entity:
-   167                                                   profiles_df = profiles_df.drop(columns=['entity_id', 'entity_type'], errors='ignore')
-   168                                                   logger.info("Фиктивные колонки entity_id/entity_type удалены из результата.")
-   169                                           
-   170                                               return profiles_df, site_index, cat_index
+   152         2        230.8    115.4      0.0      # Этап 5: Добавление временных признаков
+   153         2         32.8     16.4      0.0      logger.info("Этап 5/5 Добавление временных признаков...")
+   154         1          2.6      2.6      0.0      profiles_df = add_temporal_features(profiles_df, df_clean)
+   155         1          1.7      1.7      0.0  
+   156                                               # Опционально: добавляем разбиение
+   157         1        235.3    235.3      0.0      if split_data:
+   158                                                   logger.info("Добавление разбиения train/val/test...")
+   159                                                   profiles_df = add_train_val_test_split(profiles_df)
+   160         1          1.0      1.0      0.0  
+   161                                               logger.info("=" * 50)
+   162                                               logger.info(
+   163                                                   f"Готово: {len(profiles_df):,} профилей, "
+   164         1          0.9      0.9      0.0          f"{len(site_index):,} сайтовых индексов, "
+   165                                                   f"{len(cat_index):,} категориальных индексов"
+   166                                               )
+   167                                               logger.info("=" * 50)
+   168                                           
+   169                                               # После построения profiles_df удаляем фиктивные колонки, если их не было
+   170                                               if not has_entity:
+   171                                                   profiles_df = profiles_df.drop(columns=['entity_id', 'entity_type'], errors='ignore')
+   172                                                   logger.info("Фиктивные колонки entity_id/entity_type удалены из результата.")
+   173                                           
+   174                                               return profiles_df, site_index, cat_index
 
 Total time: 10.4209 s
 File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/blocking.py
@@ -804,7 +812,7 @@ Function: build_features at line 86
 
 Line #      Hits         Time  Per Hit   % Time  Line Contents
 ==============================================================
-    86                                                   (rows1['osfamily'].apply(frozenset_to_str) != rows2['osfamily'].apply(frozenset_to_str))
+    86                                                   np.abs(rows1['tz_offset'].fillna(0) - rows2['tz_offset'].fillna(0)) > 4
 
 Total time: 0.351971 s
 File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/clustering.py
@@ -835,24 +843,169 @@ Line #      Hits         Time  Per Hit   % Time  Line Contents
     91                                                   clusters.setdefault(lbl, []).append(profile_list[i])
 
 Total time: 0.0166321 s
-File: train_model.py
-Function: get_latest_parquet at line 23
+
+Could not find file train_model.py
+Are you sure you are running this program from the same directory
+that you ran the profiler from?
+Continuing without the function's contents.
 
 Line #      Hits         Time  Per Hit   % Time  Line Contents
 ==============================================================
-    23                                           try:
-    24                                               profile
-    25         1         55.0     55.0      0.3  except NameError:
-    26         1      10451.9  10451.9     62.8      def profile(func):
-    27         1          2.4      2.4      0.0          return func
+    23                                           
+    24                                           
+    25         1         55.0     55.0      0.3  
+    26         1      10451.9  10451.9     62.8  
+    27         1          2.4      2.4      0.0  
+    28                                           
+    29         1       5481.5   5481.5     33.0  
+    30         1        640.7    640.7      3.9  
+    31         1          0.7      0.7      0.0  
 
 Total time: 6617.83 s
-File: train_model.py
-Function: main at line 33
+
+Could not find file train_model.py
+Are you sure you are running this program from the same directory
+that you ran the profiler from?
+Continuing without the function's contents.
 
 Line #      Hits         Time  Per Hit   % Time  Line Contents
 ==============================================================
-    33                                               if not parquet_files:
-    34                                                   raise FileNotFoundError(f"Нет .parquet файлов в {directory}")
-    35                                               latest = max(parquet_files, key=lambda p: p.stat().st_mtime)
+    33                                           
+    34                                           
+    35                                           
+    36         1      16667.8  16667.8      0.0  
+    37         1        278.5    278.5      0.0  
+    38         1     470424.5 470424.5      0.0  
+    39         1 2334166590.1 2.33e+09     35.3  
+    40                                           
+    41                                           
+    42         1        451.9    451.9      0.0  
+    43         1      52487.9  52487.9      0.0  
+    44         1      15506.3  15506.3      0.0  
+    45         1      15153.3  15153.3      0.0  
+    46                                           
+    47         1     234707.6 234707.6      0.0  
+    48         1      76067.3  76067.3      0.0  
+    49         1     128182.9 128182.9      0.0  
+    50                                           
+    51         1  142032870.7 1.42e+08      2.1  
+    52         1   39084046.2 3.91e+07      0.6  
+    53         1   32585952.9 3.26e+07      0.5  
+    54                                           
+    55                                           
+    56         1    1112076.2 1.11e+06      0.0  
+    57         1     446652.6 446652.6      0.0  
+    58                                           
+    59                                           
+    60         1     988993.3 988993.3      0.0  
+    61         1    9467974.3 9.47e+06      0.1  
+    62         1   12857192.9 1.29e+07      0.2  
+    63         1          5.0      5.0      0.0  
+    64         1          6.0      6.0      0.0  
+    65         1        874.4    874.4      0.0  
+    66         1      19214.9  19214.9      0.0  
+    67         1       2831.5   2831.5      0.0  
+    68         1       5521.3   5521.3      0.0  
+    69         1        342.0    342.0      0.0  
+    70                                           
+    71                                           
+    72         2   25655108.4 1.28e+07      0.4  
+    73         1          0.7      0.7      0.0  
+    74         2 2079203768.9 1.04e+09     31.4  
+    75         1          0.8      0.8      0.0  
+    76         2 1793123700.6 8.97e+08     27.1  
+    77         1          1.0      1.0      0.0  
+    78                                           
+    79                                           
+    80         2       1930.7    965.4      0.0  
+    81         1          2.6      2.6      0.0  
+    82         1          1.1      1.1      0.0  
+    83         1          1.0      1.0      0.0  
+    84         1          1.3      1.3      0.0  
+    85         1          1.0      1.0      0.0  
+    86         1          0.9      0.9      0.0  
+    87         1          4.1      4.1      0.0  
+    88         1          0.9      0.9      0.0  
+    89         1          0.9      0.9      0.0  
+    90                                           
+    91         1   97793499.6 9.78e+07      1.5  
+    92                                           
+    93                                           
+    94         1    6075840.9 6.08e+06      0.1  
+    95         1          4.2      4.2      0.0  
+    96         1       5927.1   5927.1      0.0  
+    97         1        373.6    373.6      0.0  
+    98         1    1313751.5 1.31e+06      0.0  
+    99                                           
+   100                                           
+   101         1          2.4      2.4      0.0  
+   102   4224371    3312195.2      0.8      0.1  
+   103   4224370    2961356.5      0.7      0.0  
+   104   4224370    2964885.3      0.7      0.0  
+   105         1        370.0    370.0      0.0  
+   106         1   29641041.9 2.96e+07      0.4  
+   107         1     357722.8 357722.8      0.0  
+   108                                           
+   109                                           
+   110                                           
+   111         1        374.6    374.6      0.0  
+   112         1          1.1      1.1      0.0  
+   113                                           
+   114                                           
+   115         1         44.3     44.3      0.0  
+   116         1       4419.0   4419.0      0.0  
+   117         1          3.1      3.1      0.0  
+   118         1         49.6     49.6      0.0  
+   119         1     159968.0 159968.0      0.0  
+   120         1        444.1    444.1      0.0  
+   121                                           
+   122                                           
+   123         1         35.3     35.3      0.0  
+   124         1       9486.2   9486.2      0.0  
+   125                                           
+   126                                           
+   127         1      40428.6  40428.6      0.0  
+   128         1       1869.3   1869.3      0.0  
+   129                                           
+   130         1          3.4      3.4      0.0  
+   131         1          0.9      0.9      0.0  
+   132         1          0.6      0.6      0.0  
+   133         1          1.2      1.2      0.0  
+   134         1          0.5      0.5      0.0  
+   135         1          0.9      0.9      0.0  
+   136         1          0.8      0.8      0.0  
+   137         1          1.2      1.2      0.0  
+   138         1          0.5      0.5      0.0  
+   139         1          0.6      0.6      0.0  
+   140         1          0.8      0.8      0.0  
+   141         1          1.5      1.5      0.0  
+   142         1      18751.6  18751.6      0.0  
+   143         1    1322714.2 1.32e+06      0.0  
+   144         1          1.9      1.9      0.0  
+   145         1          2.1      2.1      0.0  
+   146         1          1.1      1.1      0.0  
+   147         1          0.9      0.9      0.0  
+   148         1          0.7      0.7      0.0  
+   149         1          0.7      0.7      0.0  
+   150         1          2.0      2.0      0.0  
+   151         1          1.0      1.0      0.0  
+   152                                           
+   153                                           
+   154                                           
+   155         1         34.9     34.9      0.0  
+   156         2       6187.8   3093.9      0.0  
+   157         1       2308.8   2308.8      0.0  
+   158         1        338.8    338.8      0.0  
+   159                                           
+   160                                           
+   161         1         23.7     23.7      0.0  
+   162         1       2049.7   2049.7      0.0  
+   163         2       3619.6   1809.8      0.0  
+   164         1      31166.2  31166.2      0.0  
+   165         1       7910.3   7910.3      0.0  
+   166         2       2441.1   1220.6      0.0  
+   167         1      21633.0  21633.0      0.0  
+   168         1        324.2    324.2      0.0  
+   169                                           
+   170         1         63.0     63.0      0.0  
 
