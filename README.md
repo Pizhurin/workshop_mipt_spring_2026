@@ -143,7 +143,16 @@ python evaluate.py --output_clusters my_clusters.csv
 | Отчёт оценки | data/evaluation-results/evaluation_report.json |
 | Логи | терминал (logging уровня INFO) |
 
-### 8. Структура проекта
+### 8. Запустить визуализацию Gradio
+
+```bash
+cd workshop_mipt_spring_2026/web
+docker compose up              # Linux/Mac
+docker-compose up            # Windows
+python gradio_app.py 
+```
+
+### 9. Структура проекта
 ```text
 .
 ├── config.yaml                    # Текущий конфиг + указатель активного эксперимента
@@ -162,20 +171,26 @@ python evaluate.py --output_clusters my_clusters.csv
 │   ├── evaluation-results/        # JSON‑отчёты оценки (не в git)
 │   └── inference-results/         # CSV с предсказаниями (не в git)
 ├── models/                        # .cbm модели (в git)
-└── src/                           # исходные модули
-    ├── config_loader.py
-    ├── utils.py
-    ├── preprocessing.py
-    ├── aggregation_profiles.py
-    ├── site_activity_processor.py
-    ├── cat_activity_processor.py
-    ├── profiles_processor.py
-    ├── blocking.py
-    ├── features.py
-    └── clustering.py
+├── src/                           # исходные модули
+│   ├── config_loader.py
+│   ├── utils.py
+│   ├── preprocessing.py
+│   ├── aggregation_profiles.py
+│   ├── site_activity_processor.py
+│   ├── cat_activity_processor.py
+│   ├── profiles_processor.py
+│   ├── blocking.py
+│   ├── features.py
+│   └── clustering.py
+└── web
+    ├── converter.py
+    ├── gradio_app.py
+    ├── docker-compose.yml
+    ├── request.json
+    └── EDA.ipynb                  # не в git
 ```
 
-### 9. Настройка параметров
+### 10. Настройка параметров
 
 Все параметры (размер блоков, гиперпараметры модели, пороги) задаются в `config.yaml`.
 
@@ -192,7 +207,7 @@ python evaluate.py --output_clusters my_clusters.csv
 | clustering.threshold | порог для иерархической кластеризации |
 | confidence.* | пороги для определения уверенных кластеров (используются в predict_entities.py) |
 
-### 10. FAQ
+### 11. FAQ
 
 **Q: Почему при инференсе удаляются колонки entity_id / entity_type?**
 
