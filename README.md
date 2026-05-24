@@ -147,9 +147,10 @@ python evaluate.py --output_clusters my_clusters.csv
 
 ```bash
 cd workshop_mipt_spring_2026/web
-docker compose up              # Linux/Mac
+docker compose up            # Linux/Mac
 docker-compose up            # Windows
-python gradio_app.py 
+python3 gradio_app.py        # Linux/Mac
+python gradio_app.py         # Windows
 ```
 
 ### 9. Структура проекта
@@ -186,8 +187,13 @@ python gradio_app.py
     ├── converter.py
     ├── gradio_app.py
     ├── docker-compose.yml
-    ├── request.json
-    └── EDA.ipynb                  # не в git
+    ├── request.json                  # заглушка вместо реальных данных (NDA)
+    ├── EDA.ipynb                     # не в git
+    └── Images/                           
+        ├── Smirnova_A.png
+        ├── Pizhurin_Y.png
+        ├── Vorobkin_A.png
+        └── Solovyov_E.png                 
 ```
 
 ### 10. Настройка параметров
