@@ -1,0 +1,29 @@
+active_experiment_report: /Users/anastasiasobchuk/Desktop/test/workshop_mipt_spring_2026/data/training-results/training_report_2026-05-24_13-28-45.json
+blocking:
+  max_group_size: 800
+  use_geo_device: true
+  use_sites: true
+clustering:
+  eval_split: test
+  method: complete
+  threshold: 0.95
+confidence:
+  check_conflicts: true
+  min_avg_prob: 0.99
+model:
+  depth: 3
+  early_stopping_rounds: 150
+  eval_metric: F1
+  iterations: 2500
+  l2_leaf_reg: 30
+  learning_rate: 0.03
+  scale_pos_weight: 10
+  threshold: 0.99
+paths:
+  evaluation_results: data/evaluation-results
+  inference_results: data/inference-results
+  model_dir: models
+  training_results: data/training-results
+seed: 42
+training:
+  balance_ratio: 8

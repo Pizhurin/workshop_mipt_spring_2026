@@ -1,0 +1,858 @@
+Timer unit: 1e-06 s
+
+Total time: 0.0253975 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/config_loader.py
+Function: load_config at line 8
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+     8                                           try:
+     9                                               profile
+    10         2       2421.8   1210.9      9.5  except NameError:
+    11         1      22973.5  22973.5     90.5      def profile(func):
+    12         1          2.2      2.2      0.0          return func
+
+Total time: 0 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/config_loader.py
+Function: get_active_experiment at line 16
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    16                                               with open(CONFIG_PATH, 'r') as f:
+    17                                                   config = yaml.safe_load(f)
+    18                                               return config
+    19                                           
+    20                                           CONFIG = load_config()
+    21                                           
+    22                                           @profile
+    23                                           def get_active_experiment():
+    24                                               """
+    25                                               Возвращает кортеж (config, model_path), где config – словарь параметров эксперимента,
+    26                                               а model_path – путь к файлу модели.
+    27                                               Если active_experiment_report не указан или файл не найден, возвращает (CONFIG, None)
+    28                                               """
+    29                                               report_path = CONFIG.get('active_experiment_report')
+    30                                               if report_path and Path(report_path).exists():
+    31                                                   with open(report_path, 'r') as f:
+    32                                                       experiment = json.load(f)
+    33                                                   exp_config = experiment.get('config')
+    34                                                   model_filename = experiment.get('model_filename')
+    35                                                   if exp_config and model_filename:
+    36                                                       model_dir = Path(exp_config['paths']['model_dir'])
+    37                                                       model_path = model_dir / model_filename
+    38                                                       return exp_config, model_path
+    39                                               # fallback
+    40                                               model_dir = Path(CONFIG['paths']['model_dir'])
+    41                                               default_model = model_dir / CONFIG.get('active_model', 'catboost_model_latest.cbm')
+    42                                               return CONFIG, default_model if default_model.exists() else None
+
+Total time: 5.76079 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/preprocessing.py
+Function: parse_array_like_features at line 20
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    20                                               profile
+    21                                           except NameError:
+    22                                               def profile(func):
+    23                                                   return func
+
+Total time: 1.28417 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/preprocessing.py
+Function: json_unpack at line 39
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    39                                                           parsed_features[parts[0]] = parts[1]
+
+Total time: 0.135825 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/preprocessing.py
+Function: unify_entity_ids at line 58
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    58                                                       return {}
+
+Total time: 0.400865 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/preprocessing.py
+Function: normalize_email at line 84
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    84                                                   on='profile_id',
+
+Total time: 0.336402 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/preprocessing.py
+Function: extract_email_domain at line 95
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    95                                               s = str(email_str).strip().lower()
+    96                                               s = s.replace(" ", "")
+    97                                               if s.count("@") != 1:
+    98     68036     234652.3      3.4     69.8          return None
+    99                                               return s
+   100     68036      33765.6      0.5     10.0  
+   101     68036      67984.5      1.0     20.2  @profile
+   102                                           def extract_email_domain(email_str):
+   103                                               """Извлекает доменную часть email."""
+   104                                               if pd.isna(email_str):
+   105                                                   return None
+   106                                               try:
+   107                                                   return email_str.split("@")[1].lower()
+   108                                               except (IndexError, AttributeError):
+   109                                                   return None
+
+Total time: 0.442819 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/preprocessing.py
+Function: normalize_phone at line 107
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   107                                                   return email_str.split("@")[1].lower()
+
+Total time: 0.402635 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/preprocessing.py
+Function: extract_phone_prefix at line 126
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   126                                                   pass
+
+Total time: 0.682007 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/preprocessing.py
+Function: normalize_name at line 137
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   137                                               digits = normalize_phone(phone_str)
+   138                                               if digits and len(digits) >= 4:
+   139                                                   return digits[:4]
+   140    136072     424532.3      3.1     62.2      return None
+   141    115972      57175.6      0.5      8.4  
+   142     20100      15253.7      0.8      2.2  # ─── Names ──────────────────────────────────────────────
+   143     20100      15892.4      0.8      2.3  @profile
+   144     20100      17404.2      0.9      2.6  def normalize_name(name_str):
+   145     20100     130494.7      6.5     19.1      """Стрип, lower case, удаление спецсимволов кроме дефиса и апострофа."""
+   146                                               if pd.isna(name_str):
+   147                                                   return None
+   148     20100      10500.1      0.5      1.5      s = str(name_str).strip()
+   149                                               s = s.lower()
+   150     20100      10754.2      0.5      1.6      s = " ".join(s.split())
+   151                                               s = re.sub(r"[^a-zа-яё\-']", "", s)
+   152                                           
+   153                                               # Если после очистки пустая строка - None
+   154                                               if not s:
+   155                                                   return None
+   156                                               return s
+
+Total time: 0.300858 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/preprocessing.py
+Function: normalize_birthday at line 153
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   153                                               # Если после очистки пустая строка - None
+   154                                               if not s:
+   155                                                   return None
+   156                                               return s
+   157                                           
+   158     68036     248808.5      3.7     82.7  # ─── Birthday ─────────────────────────────────────────────
+   159     67629      37786.6      0.6     12.6  @profile
+   160       407        340.6      0.8      0.1  def normalize_birthday(birthday_val):
+   161                                               """
+   162       407       1495.4      3.7      0.5      Приводит дату рождения к строке YYYY-MM-DD или None.
+   163       407      12427.3     30.5      4.1      """
+   164                                               if pd.isna(birthday_val) or birthday_val is None:
+   165                                                   return None
+   166                                               try:
+   167                                                   # Если это datetime или Timestamp
+   168                                                   if hasattr(birthday_val, "strftime"):
+   169                                                       return birthday_val.strftime("%Y-%m-%d")
+   170                                                   # Если это строка
+   171                                                   s = str(birthday_val).strip()
+   172                                                   if s in ("", "NaT", "None", "nan", "NaN"):
+   173                                                       return None
+   174                                                   return pd.Timestamp(s).strftime("%Y-%m-%d")
+   175                                               except (ValueError, TypeError):
+   176                                                   return None
+
+Total time: 10.3283 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/preprocessing.py
+Function: extract_array_features at line 173
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   173                                                       return None
+
+Total time: 3.33234 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/preprocessing.py
+Function: extract_json_features at line 182
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   182                                               parsed_array = df[col_name].apply(parse_array_like_features)
+   183                                               parsed_array_df = pd.json_normalize(parsed_array)
+   184                                               df = pd.concat([df, parsed_array_df], axis=1)
+   185         1    1747801.9 1.75e+06     52.4      df = df.drop(columns=[col_name])
+   186         1    1576809.4 1.58e+06     47.3      return df
+   187         1       3257.6   3257.6      0.1  
+   188         1       4469.4   4469.4      0.1  @profile
+   189         1          0.7      0.7      0.0  def extract_json_features(df, col_name):
+   190                                               """Для realtime_features"""
+   191                                               parsed_json = df[col_name].apply(json_unpack)
+   192                                               json_data = pd.json_normalize(parsed_json)
+   193                                               df = pd.concat([df, json_data], axis=1)
+   194                                               df = df.drop(columns=[col_name])
+   195                                               return df
+
+Total time: 5.62698 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/preprocessing.py
+Function: normalize_contacts at line 192
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   192                                               json_data = pd.json_normalize(parsed_json)
+   193                                               df = pd.concat([df, json_data], axis=1)
+   194                                               df = df.drop(columns=[col_name])
+   195         1      25843.3  25843.3      0.5      return df
+   196         1     866578.2 866578.2     15.4  
+   197         1     802724.1 802724.1     14.3  # ─── Применяем нормализацию и извлекаем доп.данные из контактов ────────────────────
+   198         1     833302.8 833302.8     14.8  @profile
+   199         1     835202.7 835202.7     14.8  def normalize_contacts(df):
+   200         1     861923.7 861923.7     15.3      """Применяет нормализацию email, phone, имен ко всем строкам."""
+   201         1     624425.4 624425.4     11.1      df = df.copy()
+   202         1     776976.0 776976.0     13.8      df["email_normalized"] = df["email"].apply(normalize_email)
+   203         1          0.7      0.7      0.0      df["email_domain"] = df["email"].apply(extract_email_domain)
+   204                                               df["phone_normalized"] = df["phone"].apply(normalize_phone)
+   205                                               df["phone_prefix"] = df["phone"].apply(extract_phone_prefix)
+   206                                               df["first_name_clean"] = df["first_name"].apply(normalize_name)
+   207                                               df["last_name_clean"] = df["last_name"].apply(normalize_name)
+   208                                               df["birthday_clean"] = df["birthday"].apply(normalize_birthday)
+   209                                               return df
+
+Total time: 19.8516 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/preprocessing.py
+Function: full_preprocessing at line 206
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   206                                               df["first_name_clean"] = df["first_name"].apply(normalize_name)
+   207                                               df["last_name_clean"] = df["last_name"].apply(normalize_name)
+   208                                               df["birthday_clean"] = df["birthday"].apply(normalize_birthday)
+   209                                               return df
+   210                                           
+   211         1         16.6     16.6      0.0  # ─── Весь пайплайн ─────────────────────────────────────────────────────────────────
+   212         1        252.9    252.9      0.0  @profile
+   213         1        286.7    286.7      0.0  def full_preprocessing(df):
+   214         1        307.5    307.5      0.0      """
+   215         1        274.0    274.0      0.0      Полный пайплайн предобработки.
+   216                                               """
+   217                                               initial_rows = len(df)
+   218         1        388.0    388.0      0.0      logger.info("=" * 50)
+   219         1    7382273.3 7.38e+06     37.2      logger.info("Запущен пайплайн предобработки")
+   220         1        303.9    303.9      0.0      logger.info(f"Исходное количество строк: {initial_rows}")
+   221                                               logger.info("-" * 50)
+   222                                           
+   223         1        152.6    152.6      0.0      # 1. Парсинг fs_features
+   224         1    2982398.0 2.98e+06     15.0      logger.info("Шаг 1/6: парсинг fs_features...")
+   225         1        462.6    462.6      0.0      df = extract_array_features(df, "fs_features")
+   226                                               logger.info(f"  Добавлено колонок из fs_features: {df.shape[1]}")
+   227                                           
+   228         1        225.0    225.0      0.0      # 2. Парсинг non_processing_features
+   229         1    3351159.6 3.35e+06     16.9      logger.info("Шаг 2/6: парсинг non_processing_features...")
+   230         1        335.3    335.3      0.0      df = extract_array_features(df, "non_processing_features")
+   231                                               logger.info(f"  Всего колонок после парсинга: {df.shape[1]}")
+   232                                           
+   233         1        184.8    184.8      0.0      # 3. Парсинг realtime_features
+   234         1     195102.4 195102.4      1.0      logger.info("Шаг 3/6: парсинг realtime_features...")
+   235         1          7.7      7.7      0.0      df = extract_json_features(df, "realtime_features")
+   236         1          1.1      1.1      0.0      logger.info(f"  Всего колонок после парсинга: {df.shape[1]}")
+   237                                           
+   238                                               # 4. Удаление полных дубликатов
+   239         1        266.2    266.2      0.0      logger.info("Шаг 4/6: удаление полных дубликатов...")
+   240                                               df = df.drop_duplicates()
+   241                                               removed = initial_rows - len(df)
+   242         1        220.9    220.9      0.0      if removed > 0:
+   243         1      40912.7  40912.7      0.2          logger.info(f"  Удалено полных дубликатов: {removed} строк")
+   244         1          1.4      1.4      0.0      else:
+   245                                                   logger.info("  Полных дубликатов не найдено")
+   246                                           
+   247                                               # 5. Унификация entity_id
+   248                                               logger.info("Шаг 5/6: унификация entity_id...")
+   249         1     137492.3 137492.3      0.7      problem_count = df.groupby('profile_id')['entity_id'].nunique().max()
+   250                                               if problem_count > 1:
+   251         1         15.7     15.7      0.0          logger.warning(
+   252                                                       f"  Обнаружено profile_id с несколькими entity_id. "
+   253         1      37094.1  37094.1      0.2              f"Будет выполнена унификация."
+   254         2      51911.4  25955.7      0.3          )
+   255         1          1.2      1.2      0.0      df = unify_entity_ids(df)
+   256                                               # Вычисляем entity_type, если колонка отсутствует
+   257         1        278.8    278.8      0.0      if 'entity_type' not in df.columns:
+   258                                                   # Определяем количество профилей в каждой entity
+   259         1      38824.4  38824.4      0.2          entity_counts = df.groupby('entity_id')['profile_id'].transform('nunique')
+   260         1        319.6    319.6      0.0          df['entity_type'] = entity_counts.apply(
+   261                                                       lambda x: 'multi_profile' if x > 1 else 'single_profile'
+   262                                                   )
+   263         1        236.8    236.8      0.0          logger.info("Колонка 'entity_type' вычислена автоматически.")
+   264         1    5628657.2 5.63e+06     28.4  
+   265         1        313.1    313.1      0.0      after_fix = df.groupby('profile_id')['entity_id'].nunique().max()
+   266                                               logger.info(f"  После унификации: max entity_id на profile_id = {after_fix}")
+   267         1        212.9    212.9      0.0  
+   268         1        332.4    332.4      0.0      # 6. Нормализация контактов
+   269         1        362.9    362.9      0.0      logger.info("Шаг 6/6: нормализация контактов...")
+   270                                               df = normalize_contacts(df)
+   271         1          1.7      1.7      0.0      logger.info(f"  Добавлены колонки: email_normalized, email_domain, "
+   272                                                           f"phone_normalized, phone_prefix, first_name_clean, last_name_clean, birthday_clean")
+   273                                               logger.info("-" * 50)
+   274                                               logger.info(f"Предобработка завершена. Строк: {len(df)}, колонок: {df.shape[1]}")
+   275                                               logger.info("=" * 50)
+   276                                           
+   277                                               return df
+
+Total time: 374.113 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/utils.py
+Function: frozenset_to_str at line 10
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    10                                           try:
+    11                                               profile
+    12                                           except NameError:
+    13                                               def profile(func):
+    14                                                   return func
+
+Total time: 496.961 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/utils.py
+Function: safe_set at line 30
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    30                                               if pd.notna(val):
+    31                                                   return str(val).strip()
+    32                                           
+    33                                               return ""
+    34                                           
+    35  67923048   54116347.2      0.8     10.9  
+    36  50942286  265848711.6      5.2     53.5  @profile
+    37                                           def safe_set(val: Any) -> Set:
+    38  16980762   12368656.6      0.7      2.5      """
+    39                                               Преобразует frozenset, строку или None в set.
+    40                                               """
+    41                                               if isinstance(val, frozenset):
+    42                                                   return {x for x in val if pd.notna(x) and x != ''}
+    43  16980762   15148467.1      0.9      3.0  
+    44  16980762  149479150.1      8.8     30.1      if isinstance(val, str):
+    45                                                   if not val.strip():
+    46                                                       return set()
+    47                                                   return {x.strip() for x in val.split(",") if x.strip()}
+    48                                           
+    49                                               if isinstance(val, (list, tuple, set)):
+    50                                                   return {x for x in val if pd.notna(x) and x != ''}
+    51                                           
+    52                                               return set()
+
+Total time: 0 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/utils.py
+Function: normalize_bool at line 49
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    49                                               if isinstance(val, (list, tuple, set)):
+    50                                                   return {x for x in val if pd.notna(x) and x != ''}
+    51                                           
+    52                                               return set()
+    53                                           
+    54                                           
+    55                                           @profile
+    56                                           def normalize_bool(val: Any) -> bool:
+    57                                               """Надёжное преобразование различных представлений True/False."""
+    58                                               if val is None or pd.isna(val):
+    59                                                   return False
+    60                                           
+    61                                               if isinstance(val, bool):
+    62                                                   return val
+    63                                           
+    64                                               return str(val).strip().lower() in {"true", "1", "yes", "y", "t", "да"}
+
+Total time: 187.898 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/utils.py
+Function: jaccard at line 61
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    61                                               if isinstance(val, bool):
+    62                                                   return val
+    63                                           
+    64  85859664   58639067.5      0.7     31.2      return str(val).strip().lower() in {"true", "1", "yes", "y", "t", "да"}
+    65  21918987   13198424.3      0.6      7.0  
+    66  63940677   38556520.1      0.6     20.5  
+    67  19068925   11477529.0      0.6      6.1  @profile
+    68  44871752   66026689.2      1.5     35.1  def jaccard(set_a: Set, set_b: Set) -> float:
+    69                                               """Коэффициент Жаккара для двух множеств."""
+    70                                               if not set_a and not set_b:
+    71                                                   return 1.0
+    72                                               if not set_a or not set_b:
+    73                                                   return 0.0
+    74                                               return len(set_a & set_b) / len(set_a | set_b)
+
+Total time: 63.5973 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/utils.py
+Function: overlap_size at line 71
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    71                                                   return 1.0
+
+Total time: 57.287 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/aggregation_profiles.py
+Function: last_non_null at line 11
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    11                                           try:
+    12                                               profile
+    13     61927   56790522.1    917.1     99.1  except NameError:
+    14     61927     496443.3      8.0      0.9      def profile(func):
+    15                                                   return func
+
+Total time: 676.769 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/aggregation_profiles.py
+Function: build_profiles_df at line 16
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    16                                           
+    17                                           @profile
+    18         1        564.1    564.1      0.0  def last_non_null(series):
+    19                                               non_null = series.dropna()
+    20         1       9526.2   9526.2      0.0      return non_null.iloc[-1] if len(non_null) > 0 else None
+
+Total time: 0.848491 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/site_activity_processor.py
+Function: _safe_int at line 12
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    12                                               profile
+    13                                           except NameError:
+    14                                               def profile(func):
+    15    235038     230773.8      1.0     27.2          return func
+
+Total time: 855.404 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/site_activity_processor.py
+Function: build_site_index at line 21
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    21                                               try:
+    22                                                   return int(float(v))
+    23                                               except (ValueError, TypeError):
+    24                                                   return None
+    25                                           
+    26                                           
+    27                                           @profile
+    28                                           def build_site_index(df_clean):
+    29         1        348.7    348.7      0.0      """
+    30                                               Строит индекс цифрового следа профилей.
+    31         1          3.2      3.2      0.0  
+    32                                               Вход: df_clean после full_preprocessing()
+    33                                               Выход: dict[profile_id] -> dict[category] -> set[int]
+    34                                               """
+    35                                               logger.info("Сборка site_index...")
+    36         2          1.9      1.0      0.0  
+    37        62        417.9      6.7      0.0      site_prefixes = [
+    38        60        261.4      4.4      0.0          "has_accept_", "has_account", "has_click_", "has_order_",
+    39                                                   "has_view_", "source_site_", "visited_",
+    40                                               ]
+    41         1        207.3    207.3      0.0  
+    42        13          7.0      0.5      0.0      site_categories = [
+    43        12         73.2      6.1      0.0          col for col in df_clean.columns
+    44                                                   if any(col.startswith(prefix) for prefix in site_prefixes)
+    45         1          0.8      0.8      0.0      ]
+    46                                           
+    47                                               logger.info(f"  Найдено категорий: {len(site_categories)}")
+    48     61928     407380.0      6.6      0.0      for cat in site_categories:
+    49     61927    1280540.0     20.7      0.1          logger.debug(f"    {cat}")
+    50     61927      65872.4      1.1      0.0  
+    51                                               site_index = {}
+    52                                           
+    53        13         27.3      2.1      0.0      # Инициализируем словарь для каждого profile_id
+    54        12        378.7     31.6      0.0      for pid in df_clean["profile_id"].unique():
+    55                                                   site_index[pid] = {cat: set() for cat in site_categories}
+    56                                                   site_index[pid]["_all"] = set()
+    57                                           
+    58        24  847401718.7 3.53e+07     99.1      # Заполняем по категориям
+    59        12         22.3      1.9      0.0      for cat in site_categories:
+    60                                                   if cat not in df_clean.columns:
+    61                                                       logger.warning(f"  Колонка {cat} не найдена, пропускаем")
+    62    743136    4561709.7      6.1      0.5              continue
+    63    743124    1112098.7      1.5      0.1  
+    64    743124     572460.9      0.8      0.1          grouped = df_clean.groupby("profile_id")[cat].apply(
+    65                                                       lambda x: {_safe_int(v) for v in x.dropna() if v and pd.notna(v)} - {None}
+    66         1        489.5    489.5      0.0          )
+    67         1        283.8    283.8      0.0  
+    68                                                   for pid, sites in grouped.items():
+    69         1          0.7      0.7      0.0              site_index[pid][cat] = sites
+    70                                                       site_index[pid]["_all"].update(sites)
+    71                                           
+    72                                               logger.info(f"  Профилей в индексе: {len(site_index)}")
+    73                                               logger.info(f"  Категорий: {len(site_categories)}")
+    74                                           
+    75                                               return site_index
+
+Total time: 722.662 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/cat_activity_processor.py
+Function: build_cat_index at line 11
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    11                                           try:
+    12                                               profile
+    13                                           except NameError:
+    14                                               def profile(func):
+    15                                                   return func
+
+Total time: 0.409025 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/profiles_processor.py
+Function: add_train_val_test_split at line 22
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    22                                               profile
+    23                                           except NameError:
+    24                                               def profile(func):
+    25                                                   return func
+
+Total time: 58.4324 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/profiles_processor.py
+Function: add_temporal_features at line 80
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    80                                                       & (profiles_df["entity_type"] == "multi_profile")
+
+Total time: 2334.14 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/profiles_processor.py
+Function: process_profiles at line 99
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    99                                           
+   100                                               # Для features.py нужна last_event_date
+   101                                               profiles_df["last_event_date"] = profiles_df["last_event_time"]
+   102                                           
+   103                                               return profiles_df
+   104                                           
+   105                                           @profile
+   106                                           def process_profiles(df_raw, split_data=False):
+   107                                               """
+   108                                               Полный цикл обработки.
+   109                                           
+   110                                               Вход:
+   111                                                   df_raw — сырой датафрейм
+   112         1        309.9    309.9      0.0          split_data — если True, добавляет колонку 'split' (train/val/test)
+   113         1        200.5    200.5      0.0                       если False, работает без разбиения (для production)
+   114         1        224.8    224.8      0.0  
+   115                                               Выход:
+   116                                                   profiles_df, site_index, cat_index
+   117         1       1306.5   1306.5      0.0      """
+   118         1          4.9      4.9      0.0      logger.info("=" * 50)
+   119                                               logger.info("Запуск process_profiles()")
+   120                                               logger.info("=" * 50)
+   121                                           
+   122                                               # Определяем, есть ли ground truth
+   123                                               has_entity = 'entity_id' in df_raw.columns
+   124                                               if not has_entity:
+   125                                                   # Добавляем фиктивные колонки для прохождения preprocessing
+   126                                                   df_raw = df_raw.copy()
+   127         1        435.5    435.5      0.0          df_raw['entity_id'] = df_raw['profile_id']
+   128         1   19851713.7 1.99e+07      0.9          df_raw['entity_type'] = 'single_profile'
+   129                                                   split_data = False  # отключаем разбиение, так как нет истинных сущностей
+   130                                                   logger.info("Входные данные не содержат entity_id. Добавлены фиктивные колонки для обработки.")
+   131         1        477.3    477.3      0.0  
+   132         1  676769501.0 6.77e+08     29.0      # Этап 1: Предобработка
+   133                                               logger.info("Этап 1/5: Предобработка...")
+   134                                               df_clean = full_preprocessing(df_raw)
+   135         1        412.3    412.3      0.0  
+   136         1  855724321.1 8.56e+08     36.7      # Этап 2: Паспорт профиля
+   137                                               logger.info("Этап 2/5: Построение паспорта профилей...")
+   138                                               profiles_df = build_profiles_df(df_clean)
+   139         1        417.8    417.8      0.0  
+   140         1  722927072.2 7.23e+08     31.0      # Этап 3: Индекс сайтов (цифровой след)
+   141                                               logger.info("Этап 3/5: Построение индекса сайтов...")
+   142                                               site_index = build_site_index(df_clean)
+   143         1        608.1    608.1      0.0  
+   144         1   58434230.3 5.84e+07      2.5      # Этап 4: Индекс почтовой активности
+   145                                               logger.info("Этап 4/5: Построение индекса почтовой активности...")
+   146                                               cat_index = build_cat_index(df_clean)
+   147         1          1.6      1.6      0.0  
+   148         1        280.3    280.3      0.0      # Этап 5: Добавление временных признаков
+   149         1     429681.3 429681.3      0.0      logger.info("Этап 5/5 Добавление временных признаков...")
+   150                                               profiles_df = add_temporal_features(profiles_df, df_clean)
+   151         1        390.6    390.6      0.0  
+   152         2        230.8    115.4      0.0      # Опционально: добавляем разбиение
+   153         2         32.8     16.4      0.0      if split_data:
+   154         1          2.6      2.6      0.0          logger.info("Добавление разбиения train/val/test...")
+   155         1          1.7      1.7      0.0          profiles_df = add_train_val_test_split(profiles_df)
+   156                                           
+   157         1        235.3    235.3      0.0      logger.info("=" * 50)
+   158                                               logger.info(
+   159                                                   f"Готово: {len(profiles_df):,} профилей, "
+   160         1          1.0      1.0      0.0          f"{len(site_index):,} сайтовых индексов, "
+   161                                                   f"{len(cat_index):,} категориальных индексов"
+   162                                               )
+   163                                               logger.info("=" * 50)
+   164         1          0.9      0.9      0.0  
+   165                                               # После построения profiles_df удаляем фиктивные колонки, если их не было
+   166                                               if not has_entity:
+   167                                                   profiles_df = profiles_df.drop(columns=['entity_id', 'entity_type'], errors='ignore')
+   168                                                   logger.info("Фиктивные колонки entity_id/entity_type удалены из результата.")
+   169                                           
+   170                                               return profiles_df, site_index, cat_index
+
+Total time: 10.4209 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/blocking.py
+Function: make_pairs at line 18
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    18                                           try:
+    19                                               profile
+    20                                           except NameError:
+    21     12828      10875.2      0.8      0.1      def profile(func):
+    22                                                   return func
+
+Total time: 206.965 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/blocking.py
+Function: blocking_pipeline at line 28
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    28                                                   return []
+
+Total time: 43.3574 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/blocking.py
+Function: blocking_by_sites at line 64
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    64                                               logger.info("=" * 70)
+    65                                           
+    66         3         71.8     23.9      0.0      return candidate_pairs
+    67     61930      64358.8      1.0      0.1  
+    68    212682     208845.2      1.0      0.5  
+    69    150755     135389.8      0.9      0.3  # Блоки
+    70                                           @profile
+    71         3         10.5      3.5      0.0  def blocking_by_sites(profiles_df, site_index, max_group_size=CONFIG['blocking']['max_group_size']):
+    72      2864       3017.2      1.1      0.0      site_to_profiles = defaultdict(list)
+    73      2861       3224.0      1.1      0.0      for pid, categories in site_index.items():
+    74      2227    9326375.1   4187.9     21.5          for site_id in categories.get("_all", set()):
+    75         3   33616072.6 1.12e+07     77.5              site_to_profiles[site_id].append(pid)
+    76                                           
+    77                                               pairs = []
+    78                                               for plist in site_to_profiles.values():
+    79                                                   if len(plist) >= 2:
+    80                                                       pairs.extend(make_pairs(plist, max_group_size))
+    81                                               return list(set(tuple(sorted(p)) for p in pairs))
+
+Total time: 17.6067 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/blocking.py
+Function: blocking_by_geo_device at line 77
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    77                                               pairs = []
+    78                                               for plist in site_to_profiles.values():
+    79         3          3.5      1.2      0.0          if len(plist) >= 2:
+    80         9      13819.0   1535.4      0.1              pairs.extend(make_pairs(plist, max_group_size))
+    81         3      15137.5   5045.8      0.1      return list(set(tuple(sorted(p)) for p in pairs))
+    82         3      10840.9   3613.6      0.1  
+    83                                           @profile
+    84         3     315194.0 105064.7      1.8  def blocking_by_geo_device(profiles_df, max_group_size=CONFIG['blocking']['max_group_size']):
+    85                                               mask = (
+    86         3       6517.1   2172.4      0.0          profiles_df["geoname_id"].notna() &
+    87        12      41717.0   3476.4      0.2          profiles_df["osfamily"].notna() &
+    88         6     903864.5 150644.1      5.1          profiles_df["device"].notna()
+    89         3     887790.8 295930.3      5.0      )
+    90                                               df = profiles_df[mask].copy()
+    91                                           
+    92         3   10638443.1 3.55e+06     60.4      df["_key"] = (
+    93                                                   df["geoname_id"].astype(str) + "|" +
+    94         3          5.6      1.9      0.0          df["osfamily"].apply(frozenset_to_str) + "|" +
+    95      5866       6463.0      1.1      0.0          df["device"].apply(frozenset_to_str)
+    96      5863       4836.9      0.8      0.0      )
+    97      3055     550181.6    180.1      3.1  
+    98                                               grouped = df.groupby("_key").apply(lambda x: list(x.index))
+    99         3       5479.3   1826.4      0.0  
+   100         3    4206365.1  1.4e+06     23.9      pairs = []
+   101                                               for plist in grouped:
+   102                                                   if len(plist) >= 2:
+   103                                                       pairs.extend(make_pairs(plist, max_group_size))
+   104                                           
+   105                                               logger.info(f"  Ключей: {len(grouped):,}, групп ≥2: {sum(1 for x in grouped if len(x) >= 2):,}")
+   106                                               return list(set(tuple(sorted(p)) for p in pairs))
+
+Total time: 9.98018 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/blocking.py
+Function: blocking_by_name_geo at line 102
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   102                                                   if len(plist) >= 2:
+
+Total time: 20.9875 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/blocking.py
+Function: blocking_by_sex_geo at line 126
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   126                                                   if len(plist) >= 2:
+
+Total time: 26.9979 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/blocking.py
+Function: blocking_by_tz_geo at line 144
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   144                                                   if len(plist) >= 2:
+
+Total time: 32.5548 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/blocking.py
+Function: blocking_by_device_tz_geo at line 162
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+   162                                                   if len(plist) >= 2:
+
+Total time: 1.04435 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/features.py
+Function: compute_idf_sites at line 22
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    22                                               profile
+    23                                           except NameError:
+    24         1        259.0    259.0      0.0      def profile(func):
+    25         1         22.1     22.1      0.0          return func
+
+Total time: 0.327942 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/features.py
+Function: compute_idf_email_domains at line 35
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    35                                                           doc_count[site_id] += 1
+
+Total time: 70.0846 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/features.py
+Function: _normalized_levenshtein at line 51
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    51                                               idf = {k: np.log(num_profiles / v) if v > 0 else 0.0 for k, v in doc_count.items()}
+    52                                               logger.info(f"IDF domains: {len(idf):,}")
+    53   8490381   54141502.6      6.4     77.3      return idf
+    54   8490381    5770957.2      0.7      8.2  
+    55   4517874    3033874.3      0.7      4.3  
+    56    955854    7138262.0      7.5     10.2  # Вспомогательные функции
+    57                                           @profile
+    58                                           def _normalized_levenshtein(str_a: str, str_b: str) -> float:
+    59                                               from Levenshtein import distance as lev_distance
+    60                                               if not str_a and not str_b: return 0.0
+    61                                               if not str_a or not str_b: return 1.0
+    62                                               return lev_distance(str_a, str_b) / max(len(str_a), len(str_b))
+
+Total time: 174.261 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/features.py
+Function: _char_jaccard at line 58
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    58                                           def _normalized_levenshtein(str_a: str, str_b: str) -> float:
+    59                                               from Levenshtein import distance as lev_distance
+    60  16980762   12525869.5      0.7      7.2      if not str_a and not str_b: return 0.0
+    61  13008255    8688372.7      0.7      5.0      if not str_a or not str_b: return 1.0
+    62   9446235    8281630.2      0.9      4.8      return lev_distance(str_a, str_b) / max(len(str_a), len(str_b))
+
+Total time: 57.7328 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/features.py
+Function: time_overlap_ratio at line 66
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    66                                               if not str_a and not str_b: return 1.0
+    67                                               if not str_a or not str_b: return 0.0
+    68   8490381    6442740.9      0.8     11.2      def ngrams(s, n):
+    69   5898518   51290075.0      8.7     88.8          return {s[i:i+n] for i in range(len(s) - n + 1)}
+
+Total time: 630.798 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/features.py
+Function: add_conflict_features at line 71
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    71                                           
+    72                                           @profile
+    73        92     412760.4   4486.5      0.1  def time_overlap_ratio(set1, set2):
+    74        23     321088.1  13960.4      0.1      if not set1 or not set2: return 0.0
+    75        46     254935.2   5542.1      0.0      return overlap_size(set1, set2) / len(set1 | set2)
+
+Total time: 3893.36 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/features.py
+Function: build_features at line 86
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    86                                                   (rows1['osfamily'].apply(frozenset_to_str) != rows2['osfamily'].apply(frozenset_to_str))
+
+Total time: 0.351971 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/clustering.py
+Function: evaluate_clustering at line 14
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    14                                           try:
+    15                                               profile
+    16                                           except NameError:
+    17                                               def profile(func):
+    18                                                   return func
+
+Total time: 26.9458 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/clustering.py
+Function: hierarchical_average_clustering at line 43
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    43                                                   'recovery_rate': recovery_rate,
+
+Total time: 0 s
+File: /mnt/c/Users/baklushka/Desktop/Проектный практикум 2/workshop_mipt_spring_2026/src/clustering.py
+Function: is_confident_cluster at line 91
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    91                                                   clusters.setdefault(lbl, []).append(profile_list[i])
+
+Total time: 0.0166321 s
+File: train_model.py
+Function: get_latest_parquet at line 23
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    23                                           try:
+    24                                               profile
+    25         1         55.0     55.0      0.3  except NameError:
+    26         1      10451.9  10451.9     62.8      def profile(func):
+    27         1          2.4      2.4      0.0          return func
+
+Total time: 6617.83 s
+File: train_model.py
+Function: main at line 33
+
+Line #      Hits         Time  Per Hit   % Time  Line Contents
+==============================================================
+    33                                               if not parquet_files:
+    34                                                   raise FileNotFoundError(f"Нет .parquet файлов в {directory}")
+    35                                               latest = max(parquet_files, key=lambda p: p.stat().st_mtime)
+
