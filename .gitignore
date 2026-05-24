@@ -1,0 +1,52 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+env/
+venv/
+venv_*/
+.venv
+*.egg-info/
+dist/
+build/
+
+# Jupyter (ноутбуки не храним)
+.ipynb_checkpoints/
+*.ipynb
+notebooks/
+
+# Сырые данные и кэш (исключаем содержимое, но не папки)
+data/raw/*
+!data/raw/.gitkeep
+!data/raw/training/.gitkeep
+!data/raw/inference/.gitkeep
+!data/raw/evaluation/.gitkeep
+
+data/processed/*
+!data/processed/.gitkeep
+
+# Результаты инференса и оценки (только структура)
+data/inference-results/*
+!data/inference-results/.gitkeep
+
+data/evaluation-results/*
+!data/evaluation-results/.gitkeep
+
+*.log
+
+# CatBoost временные файлы
+catboost_info/
+
+# Локальные конфиги
+config_local.yaml
+
+# IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Модели и отчёты – хранятся (исключения закомментированы)
+# models/*.cbm
+# data/training-results/*.json
