@@ -186,9 +186,9 @@ python gradio_app.py         # Windows
 └── web
     ├── converter.py
     ├── gradio_app.py
+    ├── visualization.py
     ├── docker-compose.yml
     ├── request.json                  # заглушка вместо реальных данных (NDA)
-    ├── EDA.ipynb                     # не в git
     └── Images/                           
         ├── Smirnova_A.png
         ├── Pizhurin_Y.png
